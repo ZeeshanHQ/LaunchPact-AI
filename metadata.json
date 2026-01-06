@@ -1,0 +1,9 @@
+
+{
+  "name": "PromptNovaX",
+  "description": "PNX: The intelligent co-founder platform. Transform raw ideas into execution-ready blueprints with decision locking, reality checks, and timeline simulation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
