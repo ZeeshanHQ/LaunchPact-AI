@@ -46,6 +46,13 @@ export const generateProductBlueprint = async (rawIdea: string): Promise<Product
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+
+      // Critical Fix: Use rescue data if available, even on 500 error
+      if (errorData.rescue) {
+        console.warn("⚠️ AI Generation failed, using rescue blueprint:", errorData.error);
+        return errorData.rescue;
+      }
+
       console.error(`❌ API Error (${response.status}):`, errorData);
       throw new Error(errorData.error || `Server error: ${response.status}`);
     }

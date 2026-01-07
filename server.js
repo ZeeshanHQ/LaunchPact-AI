@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 });
 
 // --- Configuration ---
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || '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';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -45,20 +45,22 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 // Updated models list with reliable, working models
 // Priority: Free models first, then paid fallbacks
 const MODELS = [
-  // TIER 1: Most reliable free models
-  'google/gemini-flash-1.5',                   // Most reliable free model
-  'meta-llama/llama-3.2-3b-instruct:free',    // Fast, reliable free
-  'mistralai/mistral-7b-instruct:free',       // Solid free option
-  'qwen/qwen-2.5-7b-instruct:free',           // Good free alternative
+  // TIER 1: High-Performance Free/Experimental Models (Best Quality)
+  'google/gemini-2.0-flash-exp:free',          // Top tier free model
+  'google/gemini-2.0-flash-thinking-exp:free', // Great for reasoning
+  'meta-llama/llama-3.3-70b-instruct:free',    // Very powerful provided free
 
-  // TIER 2: Experimental free models (may have rate limits)
-  'google/gemini-2.0-flash-exp:free',         // Experimental but fast
-  'meta-llama/llama-3.3-70b-instruct:free',   // Powerful if available
+  // TIER 2: Fast & Reliable Free Models
+  'google/gemini-flash-1.5',                   // Often has free tier on some providers
+  'meta-llama/llama-3.2-3b-instruct:free',     // Reliable small model
 
-  // TIER 3: Paid models (fallback if free models fail)
-  'google/gemini-pro-1.5',                    // Reliable paid option
-  'anthropic/claude-3-haiku',                  // Fast paid fallback
-  'openai/gpt-3.5-turbo'                        // Ultimate fallback
+  // TIER 3: Solid Fallbacks
+  'mistralai/mistral-7b-instruct:free',
+  'qwen/qwen-2.5-7b-instruct:free',
+
+  // TIER 4: Paid Emergency Fallbacks
+  'anthropic/claude-3-haiku',
+  'openai/gpt-3.5-turbo'
 ];
 
 console.log("================================================");
@@ -1408,6 +1410,9 @@ app.post('/api/notifications/:id/read', async (req, res) => {
 
     if (error) throw error;
     res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Mark notification read failed:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
