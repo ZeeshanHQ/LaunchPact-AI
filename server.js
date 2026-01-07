@@ -344,11 +344,17 @@ app.post('/api/enhance-prompt', async (req, res) => {
 app.post('/api/generate-blueprint', async (req, res) => {
   const { rawIdea } = req.body;
 
+  console.log(`\n========================================`);
+  console.log(`🚀 [${new Date().toISOString()}] Generate Blueprint Request Received`);
+  console.log(`========================================`);
+
   if (!rawIdea || !rawIdea.trim()) {
+    console.error(`❌ Error: rawIdea is missing or empty`);
     return res.status(400).json({ error: 'rawIdea is required' });
   }
 
-  console.log(`🚀 Request: Forging Blueprint for "${rawIdea.slice(0, 50)}..."`);
+  console.log(`📝 Raw Idea: "${rawIdea.slice(0, 100)}${rawIdea.length > 100 ? '...' : ''}"`);
+  console.log(`📏 Length: ${rawIdea.length} characters`);
 
   try {
     const messages = [
@@ -426,10 +432,14 @@ Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
     }
 
     console.log(`✅ Success: Blueprint forged for "${parsed.productName}"`);
+    console.log(`📊 Blueprint Summary: ${parsed.ideaSummary?.slice(0, 80)}...`);
+    console.log(`========================================\n`);
     res.json({ ...parsed, sources: [] });
 
   } catch (error) {
-    console.error("❌ Blueprint forging failed:", error.message);
+    console.error(`\n❌ [${new Date().toISOString()}] Error generating blueprint:`, error.message || error);
+    console.error(`   Stack: ${error.stack || 'No stack trace'}`);
+    console.log("🛠️ AI Failure -> Launching Professional Rescue Template (200 OK)");
     console.error("   Stack:", error.stack);
 
     // Return error with rescue template
@@ -1405,7 +1415,11 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`------------------------------------------------`);
-  console.log(`🚀 SERVER RUNNING ON PORT ${PORT}`);
-  console.log(`------------------------------------------------`);
+  console.log(`========================================`);
+  console.log(`🚀 LAUNCHPACT AI BACKEND SERVER ACTIVE`);
+  console.log(`========================================`);
+  console.log(`📍 Port: ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`⏰ Started: ${new Date().toISOString()}`);
+  console.log(`========================================`);
 });

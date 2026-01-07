@@ -17,7 +17,9 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading || isEnhancing) return;
-    onGenerate(input);
+    const ideaToSubmit = input.trim();
+    setInput(''); // Clear input immediately for better UX
+    onGenerate(ideaToSubmit);
   };
 
   const handleEnhance = async () => {
@@ -113,6 +115,12 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
                     className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-xl md:text-2xl font-bold text-white placeholder:text-slate-700 h-full pr-12"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }
+                    }}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     disabled={isLoading || isEnhancing}

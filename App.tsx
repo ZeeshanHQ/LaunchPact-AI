@@ -213,9 +213,17 @@ const AppContent: React.FC = () => {
   };
 
   const handleGenerate = async (idea: string) => {
+    if (!idea || !idea.trim()) {
+      notify('Input Required', 'Please enter a raw idea to generate a blueprint.', 'error');
+      return;
+    }
+
     setIsLoading(true);
     try {
+      console.log(`🚀 Starting blueprint generation for: "${idea.slice(0, 50)}..."`);
       const blueprint = await generateProductBlueprint(idea);
+      console.log(`✅ Blueprint generated successfully: ${blueprint.productName}`);
+      
       setCurrentBlueprint(blueprint);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -225,9 +233,11 @@ const AppContent: React.FC = () => {
 
       setActiveProjectId(null);
       navigate('/blueprint');
-    } catch (error) {
-      console.error("Forge failed:", error);
-      alert("The forge is currently cold. Please check your network and try again.");
+      notify('Blueprint Forged!', `Successfully created blueprint for ${blueprint.productName}`, 'success');
+    } catch (error: any) {
+      console.error("❌ Forge failed:", error);
+      const errorMessage = error.message || "Failed to generate blueprint. Please check your network and try again.";
+      notify('Generation Failed', errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }

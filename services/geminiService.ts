@@ -1,9 +1,10 @@
 
 import { ProductBlueprint, ExecutionTask, TimelineSimulation } from "../types";
 
-// Use relative path so Vite proxy forwards to backend (localhost:3000)
-// Vite proxy is configured in vite.config.ts to forward /api/* to http://localhost:3000
-const API_BASE_URL = '/api';
+// Use environment variable for production (Render backend) or relative path for dev (Vite proxy)
+// In production: VITE_API_BASE_URL should be set to your Render backend URL (e.g., https://your-app.onrender.com)
+// In development: Vite proxy forwards /api/* to http://localhost:3000
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -29,16 +30,32 @@ export const enhanceUserPrompt = async (rawInput: string): Promise<string> => {
 };
 
 export const generateProductBlueprint = async (rawIdea: string): Promise<ProductBlueprint> => {
+  if (!rawIdea || !rawIdea.trim()) {
+    throw new Error('Raw idea is required');
+  }
+
+  console.log(`🚀 Generating blueprint for: "${rawIdea.slice(0, 50)}..."`);
+  console.log(`📡 API Base URL: ${API_BASE_URL}`);
+
   try {
-    const data = await handleResponse(await fetch(`${API_BASE_URL}/generate-blueprint`, {
+    const response = await fetch(`${API_BASE_URL}/generate-blueprint`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawIdea })
-    }));
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`❌ API Error (${response.status}):`, errorData);
+      throw new Error(errorData.error || `Server error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Blueprint generated successfully: ${data.productName || 'Unknown'}`);
     return data;
-  } catch (err) {
-    console.error("Blueprint generation failed:", err);
-    throw err;
+  } catch (err: any) {
+    console.error("❌ Blueprint generation failed:", err);
+    throw new Error(err.message || "Failed to generate blueprint. Please check your connection and try again.");
   }
 };
 
