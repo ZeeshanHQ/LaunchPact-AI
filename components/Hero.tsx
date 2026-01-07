@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, Zap, Target, Layers, Rocket, Command, Search, CheckCircle2, Download, BrainCircuit, Mic, Wand2, Crown } from 'lucide-react';
+import { Target, Rocket, Command, BrainCircuit, Wand2 } from 'lucide-react';
 import { enhanceUserPrompt } from '../services/geminiService';
 
 interface HeroProps {
@@ -18,7 +18,7 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
     e.preventDefault();
     if (!input.trim() || isLoading || isEnhancing) return;
     const ideaToSubmit = input.trim();
-    setInput(''); // Clear input immediately for better UX
+    setInput('');
     onGenerate(ideaToSubmit);
   };
 
@@ -38,181 +38,136 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
     }
   };
 
-  const SUGGESTION_PROMPTS = [
-    { label: 'SaaS Platform', icon: '🚀', prompt: 'Architect a B2B SaaS platform for automated legal workflows.' },
-    { label: 'Marketplace', icon: '🛍️', prompt: 'Design a niche marketplace for freelance videographers.' },
-    { label: 'Mobile App', icon: '📱', prompt: 'Blueprint a gamified wellness app for ADHD focus.' },
-  ];
-
   return (
-    <div className="relative pt-16 pb-20 px-6 flex flex-col items-center justify-center min-h-[85vh] overflow-hidden bg-slate-950 selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="relative w-full h-screen flex flex-col items-center justify-center bg-slate-950 overflow-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
 
-      {/* Premium Background Elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* Animated Mesh Gradients - Dark Mode */}
-        <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-indigo-500/10 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[1000px] h-[1000px] bg-purple-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
-
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent opacity-50"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]"></div>
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-indigo-600/10 rounded-full blur-[120px] animate-blob mix-blend-screen"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] bg-purple-600/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-screen"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black_40%,transparent_100%)]"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col items-center text-center relative z-10">
+      <div className="relative z-10 w-full max-w-5xl px-6 flex flex-col items-center text-center">
 
-        {/* Status Badge - Refined */}
-        <div className="animate-in fade-in slide-in-from-top-4 duration-1000 delay-100 mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/40 border border-white/10 backdrop-blur-md shadow-2xl">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">System Status: <span className="text-white">Optimal</span></span>
+        {/* Status Chip */}
+        <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-indigo-300">System Online</span>
           </div>
         </div>
 
-        {/* Headline Section - Professional Level */}
-        <div className="space-y-6 max-w-5xl mb-12">
-          <h1 className="text-7xl md:text-9xl lg:text-[11rem] font-black text-white leading-[0.8] tracking-tighter text-center select-none">
-            <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50">
-              Architect<br />
-              <span className="text-indigo-500">Tomorrow.</span>
-            </span>
-          </h1>
+        {/* Headline */}
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-8 select-none drop-shadow-2xl">
+          The Operating System <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-300 via-white to-purple-300">for Venture Building.</span>
+        </h1>
 
-          <p className="text-lg md:text-2xl text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed tracking-tight px-4 pt-6">
-            LaunchPact AI is the definitive engine for <span className="text-white">high-stakes venture architecture</span>.
-            Turn complex visions into execution-ready protocols.
-          </p>
-        </div>
+        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed mb-16 px-4">
+          LaunchPact AI transforms abstract ambition into execution-ready architecture.
+          <span className="text-white"> Design, validate, and deploy</span> your next billion-dollar vision in seconds.
+        </p>
 
-        {/* Smart Chat Bar - Professional Refinement */}
-        <div className="w-full max-w-3xl relative group perspective-1000 mb-20">
-          <div className={`
-            absolute -inset-2 rounded-[3rem] bg-indigo-500/20 opacity-0 blur-3xl transition-all duration-1000
-            ${isFocused ? 'opacity-40 scale-[1.02]' : 'group-hover:opacity-10'}
-          `}></div>
+        {/* Command Center Input */}
+        <div className="w-full max-w-2xl relative group mb-20">
+          {/* Glow Effect */}
+          <div className={`absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 blur-xl transition-all duration-500 ${isFocused ? 'opacity-30' : 'group-hover:opacity-10'}`}></div>
 
           <div className={`
-            relative bg-[#0b0f1a]/80 backdrop-blur-3xl rounded-[2.5rem] transition-all duration-500 ease-out flex flex-col p-2
-            ${isFocused
-              ? 'shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] translate-y-[-4px] border border-white/20'
-              : 'shadow-2xl border border-white/10'}
-          `}>
-            <form onSubmit={handleSubmit} className="relative">
-              <div className="relative flex flex-col md:flex-row items-center gap-2 px-4 py-2">
-                <div className="flex-1 relative flex items-center h-14 md:h-20 w-full pl-2">
-                  <div className={`mr-4 transition-all duration-500 ${isFocused ? 'text-indigo-400' : 'text-slate-600'}`}>
-                    {isLoading ? (
-                      <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <Command size={24} />
-                    )}
-                  </div>
-                  <input
-                    id="idea-input"
-                    type="text"
-                    placeholder="Enter venture vision (e.g. AI logistics nexus)..."
-                    className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-xl md:text-2xl font-bold text-white placeholder:text-slate-700 h-full pr-12"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e as any);
-                      }
-                    }}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    disabled={isLoading || isEnhancing}
-                    autoComplete="off"
-                  />
-
-                  {input.length > 5 && !isLoading && (
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-2">
-                      <button
-                        type="button"
-                        onClick={handleEnhance}
-                        disabled={isEnhancing}
-                        className="p-3 rounded-2xl bg-white/5 text-indigo-400 hover:bg-white/10 hover:scale-110 transition-all border border-white/10"
-                        title="Polish Architecture"
-                      >
-                        {isEnhancing ? (
-                          <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <Wand2 size={20} />
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="w-full md:w-auto flex gap-2">
-                  <button
-                    type="submit"
-                    disabled={!input.trim() || isLoading || isEnhancing}
-                    className={`
-                      flex-1 md:flex-none h-14 md:h-20 px-10 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3
-                      ${input.trim()
-                        ? 'bg-white text-slate-950 shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
-                        : 'bg-slate-800/50 text-slate-600 cursor-not-allowed border border-white/5'}
-                    `}
-                  >
-                    Forge
-                  </button>
-                </div>
+              relative bg-slate-900/90 backdrop-blur-2xl rounded-2xl border transition-all duration-300 ease-out p-2 flex flex-col
+              ${isFocused ? 'border-indigo-500/50 shadow-2xl scale-[1.01]' : 'border-white/10 shadow-lg'}
+            `}>
+            <form onSubmit={handleSubmit} className="relative flex items-center">
+              <div className={`pl-4 pr-3 transition-colors ${isFocused ? 'text-indigo-400' : 'text-slate-500'}`}>
+                {isLoading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Command size={20} />}
               </div>
 
-              {/* Suggestions Chips - Professional Level */}
-              <div className={`
-                 px-8 overflow-hidden transition-all duration-500 ease-out
-                 ${isFocused && !input ? 'max-h-32 opacity-100 pb-8 pt-2' : 'max-h-0 opacity-0'}
-              `}>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-4 text-left">Sector Blueprints</p>
-                <div className="flex gap-3 overflow-hidden">
-                  {[
-                    { label: 'DeFi Protocol', prompt: 'Architect a cross-chain liquidity aggregator for institutional DeFi.' },
-                    { label: 'Neural OS', prompt: 'Blueprint a high-fidelity brain-computer interface operating system.' },
-                    { label: 'Bio-Sync', prompt: 'Design a real-time molecular diagnostics platform for remote clinics.' },
-                  ].map((tag) => (
-                    <button
-                      type="button"
-                      key={tag.label}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setInput(tag.prompt);
-                        document.getElementById('idea-input')?.focus();
-                      }}
-                      className="whitespace-nowrap px-5 py-3 rounded-2xl bg-white/5 border border-white/5 text-[11px] font-bold text-slate-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
-                    >
-                      {tag.label}
-                    </button>
-                  ))}
-                </div>
+              <input
+                id="idea-input"
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                disabled={isLoading || isEnhancing}
+                placeholder="Describe your venture (e.g., 'AI-powered logistics for cold chain')..."
+                className="flex-1 bg-transparent border-none outline-none text-lg font-medium text-white placeholder:text-slate-600 h-14 px-2"
+                autoComplete="off"
+              />
+
+              <div className="flex items-center gap-2 pr-2">
+                {input.length > 3 && !isLoading && (
+                  <button
+                    type="button"
+                    onClick={handleEnhance}
+                    disabled={isEnhancing}
+                    className="p-2 text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                    title="Enhance Prompt"
+                  >
+                    {isEnhancing ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Wand2 size={18} />}
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className={`
+                      h-10 px-6 rounded-xl font-bold text-xs uppercase tracking-widest transition-all
+                      ${input.trim()
+                      ? 'bg-white text-slate-950 hover:bg-slate-200'
+                      : 'bg-slate-800 text-slate-600 cursor-not-allowed'}
+                    `}
+                >
+                  Forge
+                </button>
               </div>
             </form>
           </div>
-        </div>
 
-        {/* Intelligence Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full pt-12 max-w-5xl">
-          {[
-            { icon: Target, label: "Precision", desc: "Solidify architectural choices with elite AI consensus." },
-            { icon: BrainCircuit, label: "Insight", desc: "Combat hallucinations with deep feasibility protocols." },
-            { icon: Rocket, label: "Velocity", desc: "Turn raw thought into execution-ready assets instantly." }
-          ].map((f, i) => (
-            <div key={i} className="flex flex-col items-center text-center space-y-4 group">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 group-hover:text-indigo-400 group-hover:border-indigo-500/20 group-hover:bg-indigo-500/5 transition-all duration-500">
-                <f.icon size={24} />
-              </div>
-              <div>
-                <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-white mb-2">{f.label}</h4>
-                <p className="text-sm text-slate-500 leading-relaxed font-medium">{f.desc}</p>
-              </div>
-            </div>
-          ))}
+          {/* Contextual Hints */}
+          <div className={`mt-4 flex flex-wrap justify-center gap-2 transition-all duration-500 ${isFocused || input ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+            {[
+              "SaaS Platform for Legal Tech",
+              "Marketplace for Vintage Audio",
+              "Fintech App for Gen Z"
+            ].map(hint => (
+              <button
+                key={hint}
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); setInput(hint); }}
+                className="text-[10px] font-medium uppercase tracking-wider text-slate-500 px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/5 hover:text-indigo-300 transition-colors"
+              >
+                {hint}
+              </button>
+            ))}
+          </div>
         </div>
 
       </div>
+
+      {/* Footer Metrics */}
+      <div className="absolute bottom-10 w-full flex justify-center gap-12 text-slate-500 opacity-60">
+        <div className="flex items-center gap-3">
+          <BrainCircuit size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest">Gemini 1.5 Pro</span>
+        </div>
+        <div className="w-px h-4 bg-white/10"></div>
+        <div className="flex items-center gap-3">
+          <Rocket size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest">v1.2.0 Stable</span>
+        </div>
+        <div className="w-px h-4 bg-white/10"></div>
+        <div className="flex items-center gap-3">
+          <Target size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest"> latency: 12ms</span>
+        </div>
+      </div>
+
     </div>
   );
 };

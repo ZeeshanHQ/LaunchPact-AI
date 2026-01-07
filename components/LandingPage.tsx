@@ -15,7 +15,7 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGenerate, isLoading }) => {
     return (
-        <div className="w-full min-h-screen bg-slate-950 text-slate-200 selection:bg-indigo-500/30 pb-32">
+        <div className="w-full min-h-screen bg-slate-950 text-slate-200 selection:bg-indigo-500/30">
             {/* 1. Hero Section: The Hook */}
             <Hero onGenerate={onGenerate} isLoading={isLoading} />
 
