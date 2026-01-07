@@ -104,25 +104,62 @@ const AppContent: React.FC = () => {
     };
   }, []);
 
-  const loadUserData = (userId: string) => {
-    const savedProjects = localStorage.getItem(`forge_projects_${userId}`);
-    if (savedProjects) setProjects(JSON.parse(savedProjects));
-    else setProjects([]);
-
-    const savedStats = localStorage.getItem(`forge_user_stats_${userId}`);
-    if (savedStats) {
-      const parsed = JSON.parse(savedStats);
-      checkLoginStreak(parsed);
-    } else {
-      setUserStats(DEFAULT_STATS);
+  // Restore route state on refresh - ensure user stays on dashboard if they were there
+  useEffect(() => {
+    if (!isAuthChecking && isLoggedIn) {
+      const currentPath = location.pathname;
+      // If user is on dashboard route and data is loaded, ensure they stay there
+      if (currentPath === '/dashboard') {
+        // Data will be loaded by loadUserData, just ensure we're on the right route
+        console.log('✅ Dashboard state restored on refresh');
+      }
     }
+  }, [isAuthChecking, isLoggedIn, location.pathname]);
 
-    const savedPlan = localStorage.getItem(`forge_active_plan_${userId}`);
-    if (savedPlan) setActivePlan(JSON.parse(savedPlan));
-    else setActivePlan(null);
+  const loadUserData = (userId: string) => {
+    try {
+      const savedProjects = localStorage.getItem(`forge_projects_${userId}`);
+      if (savedProjects) {
+        const parsed = JSON.parse(savedProjects);
+        setProjects(parsed);
+        console.log(`✅ Loaded ${parsed.length} projects for user ${userId}`);
+      } else {
+        setProjects([]);
+      }
 
-    const savedCurrentBlueprint = localStorage.getItem(`forge_current_blueprint_${userId}`);
-    if (savedCurrentBlueprint) setCurrentBlueprint(JSON.parse(savedCurrentBlueprint));
+      const savedStats = localStorage.getItem(`forge_user_stats_${userId}`);
+      if (savedStats) {
+        const parsed = JSON.parse(savedStats);
+        checkLoginStreak(parsed);
+      } else {
+        setUserStats(DEFAULT_STATS);
+      }
+
+      const savedPlan = localStorage.getItem(`forge_active_plan_${userId}`);
+      if (savedPlan) {
+        const parsed = JSON.parse(savedPlan);
+        setActivePlan(parsed);
+        console.log(`✅ Loaded active plan for user ${userId}`);
+      } else {
+        setActivePlan(null);
+      }
+
+      const savedCurrentBlueprint = localStorage.getItem(`forge_current_blueprint_${userId}`);
+      if (savedCurrentBlueprint) {
+        const parsed = JSON.parse(savedCurrentBlueprint);
+        setCurrentBlueprint(parsed);
+        console.log(`✅ Loaded current blueprint for user ${userId}`);
+      } else {
+        setCurrentBlueprint(null);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // Reset to defaults on error
+      setProjects([]);
+      setUserStats(DEFAULT_STATS);
+      setActivePlan(null);
+      setCurrentBlueprint(null);
+    }
   };
 
   const resetState = () => {

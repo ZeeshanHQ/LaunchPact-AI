@@ -92,6 +92,12 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && input.trim() && !isLoading && !isEnhancing) {
+                    e.preventDefault();
+                    handleSubmit(e as any);
+                  }
+                }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 disabled={isLoading || isEnhancing}

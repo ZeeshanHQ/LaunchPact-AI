@@ -139,3 +139,4 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications
 --   - create_chat_table.sql (for team_messages table)
 -- ============================================
 
+

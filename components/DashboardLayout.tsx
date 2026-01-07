@@ -19,7 +19,8 @@ import {
     X,
     ThumbsUp,
     Zap,
-    MessageSquare
+    MessageSquare,
+    ListTodo
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
@@ -83,6 +84,7 @@ const DashboardLayout: React.FC = () => {
     const navItems = [
         { icon: Layout, label: 'Command Center', path: '/dashboard' },
         { icon: Activity, label: 'Active Mission', path: '/mission' },
+        { icon: ListTodo, label: 'Daily Tasks', path: '/daily-tasks' },
         { icon: Users, label: 'Team & Access', path: '/team' },
         { icon: MessageSquare, label: 'Team Chat', path: '/team-chat' },
         { icon: Settings, label: 'Settings', path: '/settings' },

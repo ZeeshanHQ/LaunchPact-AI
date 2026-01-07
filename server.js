@@ -44,23 +44,20 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resend = new Resend(RESEND_API_KEY);
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// Updated models list with reliable, working models
+// Updated models list with reliable, working FREE models
 // Priority: Free models first, then paid fallbacks
 const MODELS = [
-  // TIER 1: High-Performance Free/Experimental Models (Best Quality)
-  'google/gemini-2.0-flash-exp:free',          // Top tier free model
-  'google/gemini-2.0-flash-thinking-exp:free', // Great for reasoning
-  'meta-llama/llama-3.3-70b-instruct:free',    // Very powerful provided free
-
-  // TIER 2: Fast & Reliable Free Models
-  'google/gemini-flash-1.5',                   // Often has free tier on some providers
-  'meta-llama/llama-3.2-3b-instruct:free',     // Reliable small model
-
-  // TIER 3: Solid Fallbacks
-  'mistralai/mistral-7b-instruct:free',
-  'qwen/qwen-2.5-7b-instruct:free',
-
-  // TIER 4: Paid Emergency Fallbacks
+  // TIER 1: High-Performance Free Models (Best Quality)
+  'google/gemini-2.0-flash-exp:free',          // Top tier free model - most reliable
+  'meta-llama/llama-3.2-3b-instruct:free',     // Reliable small model - always works
+  'google/gemini-flash-1.5',                   // Gemini Flash (may have free tier)
+  
+  // TIER 2: Additional Free Models
+  'mistralai/mistral-7b-instruct:free',        // Solid free model
+  'qwen/qwen-2.5-7b-instruct:free',            // Reliable free model
+  'google/gemini-2.0-flash-thinking-exp:free', // Great for reasoning (if available)
+  
+  // TIER 3: Paid Emergency Fallbacks (only if all free models fail)
   'anthropic/claude-3-haiku',
   'openai/gpt-3.5-turbo'
 ];
@@ -158,11 +155,18 @@ const getRescueDailyTasks = () => [
 const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.length) => {
   // Validate API key first
   if (!OPENROUTER_API_KEY) {
+    console.error('❌ [ERROR] OPENROUTER_API_KEY is missing!');
     throw new Error('OPENROUTER_API_KEY is missing. Please set it in your .env file.');
   }
 
   const isJson = !!schema;
   const allErrors = [];
+  const timestamp = new Date().toISOString();
+
+  console.log(`\n📡 [${timestamp}] Starting OpenRouter API call`);
+  console.log(`   Request type: ${isJson ? 'JSON' : 'Text'}`);
+  console.log(`   Total models to try: ${MODELS.length}`);
+  console.log(`   API Key: ${OPENROUTER_API_KEY.substring(0, 10)}...${OPENROUTER_API_KEY.slice(-5)}`);
 
   // If JSON is required, add instruction to system message
   if (isJson && messages[0]?.role === 'system') {
@@ -171,8 +175,11 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
   for (let i = 0; i < MODELS.length; i++) {
     const model = MODELS[i];
+    const attemptStart = Date.now();
+    
     try {
-      console.log(`   🤖 [${i + 1}/${MODELS.length}] Trying model: ${model}...`);
+      console.log(`\n   🤖 [${i + 1}/${MODELS.length}] Attempting model: ${model}`);
+      console.log(`      Timestamp: ${new Date().toISOString()}`);
 
       const requestBody = {
         model: model,
@@ -186,12 +193,15 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const supportsJsonFormat = !model.includes('free') && !model.includes('mistral') && !model.includes('qwen');
       if (isJson && supportsJsonFormat) {
         requestBody.response_format = { type: "json_object" };
+        console.log(`      Using JSON response format`);
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout per model
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout per model
 
       const startTime = Date.now();
+      console.log(`      Sending request to OpenRouter...`);
+      
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -206,6 +216,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
       clearTimeout(timeoutId);
       const duration = Date.now() - startTime;
+      console.log(`      Response received in ${duration}ms (Status: ${response.status})`);
 
       if (!response.ok) {
         let errorMsg = response.statusText;
@@ -214,12 +225,14 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
           const errorData = await response.json();
           errorMsg = errorData.error?.message || errorData.error?.type || errorMsg;
           errorDetails = errorData.error || {};
+          console.log(`      Error details:`, JSON.stringify(errorDetails, null, 2));
         } catch (e) {
           const text = await response.text().catch(() => '');
           errorMsg = text || errorMsg;
+          console.log(`      Error text: ${text.substring(0, 200)}`);
         }
 
-        console.log(`   ⚠️ Model ${model} failed (${response.status}): ${errorMsg}`);
+        console.log(`   ⚠️ [FAILED] Model ${model} failed (${response.status}): ${errorMsg}`);
         if (errorDetails.code) {
           console.log(`      Error code: ${errorDetails.code}`);
         }
@@ -227,8 +240,8 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
         // If it's a rate limit, wait a bit before trying next model
         if (response.status === 429) {
-          console.log(`   ⏳ Rate limited, waiting 2 seconds before next model...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          console.log(`   ⏳ Rate limited, waiting 3 seconds before next model...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
         continue;
       }
@@ -237,37 +250,47 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
-        console.log(`   ⚠️ Model ${model} returned empty content`);
+        console.log(`   ⚠️ [FAILED] Model ${model} returned empty content`);
         console.log(`      Full response:`, JSON.stringify(data, null, 2));
         allErrors.push(`${model}: Empty content`);
         continue;
       }
 
-      console.log(`   ✅ Success with model: ${model} (${duration}ms)`);
+      const totalDuration = Date.now() - attemptStart;
+      console.log(`   ✅ [SUCCESS] Model ${model} worked!`);
+      console.log(`      Total time: ${totalDuration}ms`);
       console.log(`      Response length: ${content.length} characters`);
+      console.log(`      First 100 chars: ${content.substring(0, 100)}...`);
       return content;
 
     } catch (error) {
       const isTimeout = error.name === 'AbortError';
       const errorType = isTimeout ? 'Timeout' : (error.message.includes('fetch') ? 'Network error' : 'Error');
-      console.log(`   ⚠️ ${errorType} for ${model}: ${error.message}`);
-      if (!isTimeout) {
-        console.log(`      Stack: ${error.stack?.split('\n')[0]}`);
+      const attemptDuration = Date.now() - attemptStart;
+      
+      console.log(`   ⚠️ [${errorType.toUpperCase()}] Model ${model} failed after ${attemptDuration}ms`);
+      console.log(`      Error: ${error.message}`);
+      if (!isTimeout && error.stack) {
+        console.log(`      Stack: ${error.stack.split('\n')[0]}`);
       }
-      allErrors.push(`${model}: ${isTimeout ? 'Timeout (30s)' : error.message}`);
+      allErrors.push(`${model}: ${isTimeout ? 'Timeout (45s)' : error.message}`);
 
       // Small delay before trying next model
       if (i < MODELS.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const delay = isTimeout ? 1000 : 500;
+        console.log(`      Waiting ${delay}ms before next model...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
 
   // Log all errors for debugging
-  console.error('❌ All models failed. Detailed errors:');
+  console.error(`\n❌ [${new Date().toISOString()}] All ${MODELS.length} models failed!`);
+  console.error('   Detailed error log:');
   allErrors.forEach((err, idx) => {
     console.error(`   ${idx + 1}. ${err}`);
   });
+  console.error(`\n   This error will be visible in Render logs for debugging.`);
 
   throw new Error(`All ${MODELS.length} AI models failed. Check logs above for details. Last errors: ${allErrors.slice(-3).join(' | ')}`);
 };
@@ -348,18 +371,22 @@ app.post('/api/enhance-prompt', async (req, res) => {
 // 3. Generate Blueprint
 app.post('/api/generate-blueprint', async (req, res) => {
   const { rawIdea } = req.body;
+  const requestId = Math.random().toString(36).substring(7);
+  const timestamp = new Date().toISOString();
 
   console.log(`\n========================================`);
-  console.log(`🚀 [${new Date().toISOString()}] Generate Blueprint Request Received`);
+  console.log(`🚀 [${timestamp}] Generate Blueprint Request Received`);
+  console.log(`   Request ID: ${requestId}`);
+  console.log(`   IP: ${req.ip || req.socket.remoteAddress}`);
   console.log(`========================================`);
 
   if (!rawIdea || !rawIdea.trim()) {
-    console.error(`❌ Error: rawIdea is missing or empty`);
+    console.error(`❌ [${requestId}] Error: rawIdea is missing or empty`);
     return res.status(400).json({ error: 'rawIdea is required' });
   }
 
-  console.log(`📝 Raw Idea: "${rawIdea.slice(0, 100)}${rawIdea.length > 100 ? '...' : ''}"`);
-  console.log(`📏 Length: ${rawIdea.length} characters`);
+  console.log(`📝 [${requestId}] Raw Idea: "${rawIdea.slice(0, 100)}${rawIdea.length > 100 ? '...' : ''}"`);
+  console.log(`📏 [${requestId}] Length: ${rawIdea.length} characters`);
 
   try {
     const messages = [
@@ -422,30 +449,39 @@ Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
       }
     ];
 
-    console.log(`   📤 Sending request to AI models...`);
+    console.log(`📤 [${requestId}] Sending request to AI models...`);
     const response = await callOpenRouter(messages, true);
 
-    console.log(`   🔧 Repairing JSON response...`);
+    console.log(`🔧 [${requestId}] Repairing JSON response...`);
     const repaired = repairJson(response);
+    console.log(`   Repaired length: ${repaired.length} characters`);
 
-    console.log(`   📥 Parsing JSON...`);
+    console.log(`📥 [${requestId}] Parsing JSON...`);
     const parsed = JSON.parse(repaired);
 
     // Validate required fields
     if (!parsed.productName || !parsed.ideaSummary) {
+      console.error(`❌ [${requestId}] Invalid blueprint: missing required fields`);
+      console.error(`   Parsed keys: ${Object.keys(parsed).join(', ')}`);
       throw new Error('Invalid blueprint: missing required fields');
     }
 
-    console.log(`✅ Success: Blueprint forged for "${parsed.productName}"`);
-    console.log(`📊 Blueprint Summary: ${parsed.ideaSummary?.slice(0, 80)}...`);
+    console.log(`✅ [${requestId}] Success: Blueprint forged for "${parsed.productName}"`);
+    console.log(`📊 [${requestId}] Blueprint Summary: ${parsed.ideaSummary?.slice(0, 80)}...`);
+    console.log(`⏱️ [${requestId}] Total processing time: ${Date.now() - new Date(timestamp).getTime()}ms`);
     console.log(`========================================\n`);
     res.json({ ...parsed, sources: [] });
 
   } catch (error) {
-    console.error(`\n❌ [${new Date().toISOString()}] Error generating blueprint:`, error.message || error);
-    console.error(`   Stack: ${error.stack || 'No stack trace'}`);
-    console.log("🛠️ AI Failure -> Launching Professional Rescue Template (200 OK)");
-    console.error("   Stack:", error.stack);
+    const errorTimestamp = new Date().toISOString();
+    console.error(`\n❌ [${errorTimestamp}] [${requestId}] Error generating blueprint`);
+    console.error(`   Error message: ${error.message || error}`);
+    console.error(`   Error type: ${error.name || 'Unknown'}`);
+    if (error.stack) {
+      console.error(`   Stack trace:`);
+      console.error(error.stack);
+    }
+    console.log(`🛠️ [${requestId}] AI Failure -> Launching Professional Rescue Template (200 OK)`);
 
     // Return error with rescue template
     res.status(500).json({

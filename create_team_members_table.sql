@@ -81,3 +81,4 @@ CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON public.team_members(user_
 CREATE INDEX IF NOT EXISTS idx_team_members_email ON public.team_members(email);
 CREATE INDEX IF NOT EXISTS idx_team_members_invite_token ON public.team_members(invite_token);
 
+
