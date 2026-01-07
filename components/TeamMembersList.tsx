@@ -39,7 +39,20 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({ planId, className }) 
                 .eq('id', planId)
                 .single();
 
-            const allMembers: TeamMember[] = data || [];
+            const mappedMembers: TeamMember[] = (data || []).map(m => ({
+                id: m.id,
+                user_id: m.user_id,
+                name: m.name,
+                email: m.email,
+                expertise: m.expertise,
+                role: m.role,
+                approvalRequired: m.approval_required,
+                hasApproved: m.has_approved,
+                approvedAt: m.approved_at,
+                invitedAt: m.invited_at
+            }));
+
+            const allMembers: TeamMember[] = mappedMembers;
 
             // Add creator if not already in members
             if (planData && !allMembers.find(m => m.user_id === planData.created_by)) {
@@ -47,13 +60,13 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({ planId, className }) 
                     id: planData.created_by,
                     name: planData.created_by_name || 'Creator',
                     email: '',
-                    expertise: 'Founder',
+                    expertise: 'Founder & Architect',
                     role: 'founder',
                     approvalRequired: true,
                     hasApproved: true,
                     invitedAt: new Date().toISOString(),
                     user_id: planData.created_by
-                } as any);
+                });
             }
 
             setMembers(allMembers);
@@ -121,49 +134,66 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({ planId, className }) 
                         <div
                             key={member.id}
                             className={`p-3 rounded-xl border transition-all ${isCurrentUser
-                                    ? 'bg-indigo-500/5 border-indigo-500/20'
-                                    : 'bg-white/[0.02] border-white/5 hover:bg-white/5'
+                                ? 'bg-indigo-500/5 border-indigo-500/20'
+                                : 'bg-white/[0.02] border-white/5 hover:bg-white/5'
                                 }`}
                         >
                             {/* Member Header */}
-                            <div className="flex items-start gap-3 mb-2">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isCurrentUser
-                                        ? 'bg-indigo-500 text-white'
-                                        : 'bg-gradient-to-br from-slate-700 to-slate-600 text-slate-300'
+                            <div className="flex items-start gap-3 mb-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 shadow-lg ${isCurrentUser
+                                    ? 'bg-indigo-500 text-white'
+                                    : 'bg-gradient-to-br from-[#1a1f2e] to-[#0b0f1a] text-slate-400 border border-white/5'
                                     }`}>
                                     {member.name?.[0] || member.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <h4 className="text-sm font-bold text-white truncate">
-                                            {member.name || 'Team Member'}
+                                        <h4 className="text-[11px] font-black text-white truncate uppercase tracking-tight">
+                                            {member.name || 'Anonymous User'}
                                         </h4>
                                         {isCurrentUser && (
-                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-wider">(You)</span>
+                                            <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">You</span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium truncate">{member.expertise || 'Team Member'}</p>
+                                    <p className="text-[10px] text-slate-500 font-bold truncate uppercase tracking-widest mt-0.5">{member.expertise || 'Specialist'}</p>
                                 </div>
                             </div>
 
-                            {/* Role Badge */}
-                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getRoleBadgeColor(member.role)}`}>
-                                {getRoleIcon(member.role)}
-                                {member.role.replace('-', ' ')}
+                            <div className="flex flex-wrap items-center gap-2">
+                                {/* Role Badge */}
+                                <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${getRoleBadgeColor(member.role)}`}>
+                                    {getRoleIcon(member.role)}
+                                    {member.role.replace('-', ' ')}
+                                </div>
+
+                                {/* Join Status */}
+                                {member.user_id ? (
+                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-black uppercase tracking-widest">
+                                        <Circle size={8} className="fill-emerald-500" />
+                                        Linked
+                                    </div>
+                                ) : (
+                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-black uppercase tracking-widest">
+                                        <Circle size={8} className="animate-pulse" />
+                                        Invited
+                                    </div>
+                                )}
                             </div>
 
                             {/* Approval Status */}
                             {member.approvalRequired && (
-                                <div className="mt-2 pt-2 border-t border-white/5">
-                                    <div className="flex items-center gap-1.5">
-                                        <Circle
-                                            size={8}
-                                            className={member.hasApproved ? 'text-green-500 fill-green-500' : 'text-amber-500 fill-amber-500'}
-                                        />
-                                        <span className={`text-[9px] font-bold uppercase tracking-wider ${member.hasApproved ? 'text-green-400' : 'text-amber-400'
-                                            }`}>
-                                            {member.hasApproved ? 'Approved' : 'Pending Approval'}
-                                        </span>
+                                <div className="mt-3 pt-3 border-t border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Decision Status</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`text-[9px] font-black uppercase tracking-widest ${member.hasApproved ? 'text-emerald-400' : 'text-amber-400'
+                                                }`}>
+                                                {member.hasApproved ? 'Verified' : 'Awaiting Review'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <div className={`h-full transition-all duration-1000 ${member.hasApproved ? 'w-full bg-emerald-500' : 'w-1/3 bg-amber-500'}`} />
                                     </div>
                                 </div>
                             )}

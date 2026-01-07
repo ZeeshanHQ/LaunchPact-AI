@@ -113,23 +113,25 @@ const TeamChatSidebar: React.FC<TeamChatSidebarProps> = ({ selectedTeamId, onSel
     return (
         <div className={`bg-[#0b0f1a] border-r border-white/5 flex flex-col ${className}`}>
             {/* Header */}
-            <div className="p-4 border-b border-white/5">
+            <div className="p-6 border-b border-white/5 bg-[#0b0f1a]/50">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
+                    <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 shadow-inner">
                         <MessageCircle size={20} className="text-indigo-400" />
                     </div>
-                    <h2 className="text-lg font-black text-white uppercase italic tracking-tight">Team Chats</h2>
+                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest">Active Channels</h2>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">{teams.length} active teams</p>
+                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest opacity-60">{teams.length} Synced Missions</p>
             </div>
 
             {/* Team List */}
             <div className="flex-1 overflow-y-auto">
                 {teams.length === 0 ? (
-                    <div className="p-8 text-center">
-                        <Users size={32} className="text-slate-600 mx-auto mb-3" />
-                        <p className="text-sm text-slate-500 font-medium">No teams yet</p>
-                        <p className="text-xs text-slate-600 mt-1">Join a team to start chatting</p>
+                    <div className="p-12 text-center">
+                        <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
+                            <Users size={32} className="text-slate-700" />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">No Active Channels</p>
+                        <p className="text-[9px] text-slate-600 mt-2 font-bold uppercase tracking-widest">Initialize a mission to start collaborating</p>
                     </div>
                 ) : (
                     <div className="space-y-1 p-2">
@@ -138,16 +140,16 @@ const TeamChatSidebar: React.FC<TeamChatSidebarProps> = ({ selectedTeamId, onSel
                                 key={team.plan_id}
                                 onClick={() => onSelectTeam(team.plan_id)}
                                 className={`w-full p-3 rounded-xl text-left transition-all group ${selectedTeamId === team.plan_id
-                                        ? 'bg-indigo-500/10 border border-indigo-500/30'
-                                        : 'bg-white/[0.02] border border-transparent hover:bg-white/5 hover:border-white/10'
+                                    ? 'bg-indigo-500/10 border border-indigo-500/30'
+                                    : 'bg-white/[0.02] border border-transparent hover:bg-white/5 hover:border-white/10'
                                     }`}
                             >
                                 {/* Team Header */}
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${selectedTeamId === team.plan_id
-                                                ? 'bg-indigo-500 text-white'
-                                                : 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white'
+                                            ? 'bg-indigo-500 text-white'
+                                            : 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white'
                                             }`}>
                                             {team.product_name?.[0] || 'T'}
                                         </div>

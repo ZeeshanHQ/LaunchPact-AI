@@ -103,26 +103,21 @@ const TeamChatHub: React.FC = () => {
     };
 
     return (
-        <div className="h-screen bg-[#06080f] flex flex-col">
-            {/* Top Navigation Bar */}
-            <div className="h-16 bg-[#0b0f1a] border-b border-white/5 flex items-center justify-between px-4 shrink-0">
+        <div className="h-full bg-[#06080f] flex flex-col overflow-hidden">
+            {/* Sub Header for Chat Info */}
+            <div className="h-14 bg-[#0b0f1a]/50 border-b border-white/5 flex items-center justify-between px-6 shrink-0 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white"
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
-                    <h1 className="text-lg font-black text-white uppercase italic tracking-tight">Team Communications</h1>
+                    <h1 className="text-sm font-black text-white uppercase italic tracking-widest bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">Communication Hub</h1>
+                    {selectedTeamId && <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">{selectedTeamName}</span>}
                 </div>
 
                 {selectedTeamId && !isMobile && (
                     <button
                         onClick={() => setShowMembersList(!showMembersList)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400 rounded-xl transition-all text-slate-400 border border-white/5 hover:border-indigo-500/20 shadow-lg"
                     >
-                        <Users size={18} />
-                        <span className="text-sm font-bold">{showMembersList ? 'Hide' : 'Show'} Members</span>
+                        <Users size={16} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{showMembersList ? 'Hide' : 'Show'} Personnel</span>
                     </button>
                 )}
             </div>

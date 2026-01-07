@@ -19,9 +19,7 @@ import {
     X,
     ThumbsUp,
     Zap,
-    ChevronDown,
-    ChevronUp,
-    Briefcase
+    MessageSquare
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
@@ -31,8 +29,6 @@ const DashboardLayout: React.FC = () => {
     const [userProfile, setUserProfile] = useState<{ id: string; email: string; full_name?: string } | null>(null);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    const [teamMemberships, setTeamMemberships] = useState<any[]>([]);
-    const [isTeamsExpanded, setIsTeamsExpanded] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -46,17 +42,13 @@ const DashboardLayout: React.FC = () => {
                     full_name: user.user_metadata?.full_name
                 });
                 fetchNotifications(user.id);
-                fetchTeamMemberships(user.id);
             }
         };
         fetchProfileAndNotifications();
 
         // Poll notifications every 30 seconds
         const interval = setInterval(() => {
-            if (userProfile?.id) {
-                fetchNotifications(userProfile.id);
-                fetchTeamMemberships(userProfile.id);
-            }
+            if (userProfile?.id) fetchNotifications(userProfile.id);
         }, 30000);
 
         return () => clearInterval(interval);
@@ -83,18 +75,6 @@ const DashboardLayout: React.FC = () => {
         }
     };
 
-    const fetchTeamMemberships = async (userId: string) => {
-        try {
-            const response = await fetch(`/api/memberships/${userId}`);
-            const data = await response.json();
-            if (data.success) {
-                setTeamMemberships(data.memberships || []);
-            }
-        } catch (error) {
-            console.error('Failed to fetch team memberships:', error);
-        }
-    };
-
     const handleLogout = async () => {
         await supabase.auth.signOut();
         navigate('/');
@@ -104,7 +84,8 @@ const DashboardLayout: React.FC = () => {
         { icon: Layout, label: 'Command Center', path: '/dashboard' },
         { icon: Activity, label: 'Active Mission', path: '/mission' },
         { icon: Users, label: 'Team & Access', path: '/team' },
-        { icon: Settings, label: 'Foundry Core', path: '/settings' },
+        { icon: MessageSquare, label: 'Team Chat', path: '/team-chat' },
+        { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
     const isActive = (path: string) => location.pathname === path;
@@ -168,7 +149,7 @@ const DashboardLayout: React.FC = () => {
                         >
                             <item.icon
                                 size={20}
-                                className={`${isActive(item.path) ? 'text-indigo-400' : 'group-hover:text-indigo-400'} transition-colors flex-shrink-0`}
+                                className={`${isActive(item.path) ? 'text-indigo-400' : 'group-hover:text-indigo-400 group-hover:translate-x-1'} transition-all duration-300 flex-shrink-0`}
                             />
                             {!isSidebarCollapsed && (
                                 <span className="font-black text-xs uppercase tracking-widest whitespace-nowrap">{item.label}</span>
@@ -178,90 +159,6 @@ const DashboardLayout: React.FC = () => {
                             )}
                         </button>
                     ))}
-
-                    {/* Team Memberships Section */}
-                    {teamMemberships.length > 0 && (
-                        <div className="pt-6 mt-6 border-t border-white/5">
-                            {isSidebarCollapsed ? (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIsSidebarCollapsed(false)}
-                                        className="w-full flex items-center justify-center px-4 py-3 rounded-2xl transition-all duration-300 group hover:bg-white/5 relative"
-                                        title={`${teamMemberships.length} Team${teamMemberships.length > 1 ? 's' : ''}`}
-                                    >
-                                        <Briefcase size={20} className="text-indigo-400" />
-                                        {teamMemberships.length > 0 && (
-                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center text-[9px] font-black text-white border-2 border-[#0b0f1a]">
-                                                {teamMemberships.length}
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={() => setIsTeamsExpanded(!isTeamsExpanded)}
-                                        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group hover:bg-white/5"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Briefcase size={18} className="text-indigo-400" />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Team Memberships</span>
-                                            {teamMemberships.length > 0 && (
-                                                <span className="px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 text-[9px] font-black rounded">
-                                                    {teamMemberships.length}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {isTeamsExpanded ? (
-                                            <ChevronUp size={16} className="text-slate-600" />
-                                        ) : (
-                                            <ChevronDown size={16} className="text-slate-600" />
-                                        )}
-                                    </button>
-
-                                    {isTeamsExpanded && (
-                                        <div className="mt-2 space-y-2 px-2 max-h-[400px] overflow-y-auto scrollbar-hide">
-                                            {teamMemberships.map((membership: any) => (
-                                                <button
-                                                    key={membership.id}
-                                                    onClick={() => {
-                                                        navigate(`/team-review/${membership.plan_id}`);
-                                                        setIsMobileMenuOpen(false);
-                                                    }}
-                                                    className="w-full p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group text-left"
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 border border-indigo-500/20">
-                                                            <Briefcase size={14} className="text-indigo-400" />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-black text-white uppercase italic tracking-tight leading-tight mb-1 truncate">
-                                                                {membership.plans?.product_name || 'Team Project'}
-                                                            </p>
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
-                                                                    membership.role === 'founder' || membership.role === 'co-founder'
-                                                                        ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                                                                        : membership.role === 'technical-lead'
-                                                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                                        : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
-                                                                }`}>
-                                                                    {membership.role?.replace('-', ' ') || 'Member'}
-                                                                </span>
-                                                                {membership.approval_required && !membership.has_approved && (
-                                                                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" title="Approval pending"></span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    )}
 
                     <div className="pt-10">
                         {!isSidebarCollapsed && (

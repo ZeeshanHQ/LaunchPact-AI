@@ -325,22 +325,9 @@ const TeamChatWindow: React.FC<TeamChatWindowProps> = ({
     }
 
     return (
-        <div className={`bg-[#06080f] flex flex-col ${className}`}>
-            {/* Header */}
-            <div className="p-4 bg-[#0b0f1a] border-b border-white/5">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                        {teamName?.[0] || 'T'}
-                    </div>
-                    <div>
-                        <h2 className="text-base font-black text-white">{teamName}</h2>
-                        <p className="text-xs text-slate-500 font-medium">{teamMembers.length} members</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className={`bg-[#06080f] flex flex-col h-full ${className}`}>
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
                 {messages.length === 0 ? (
                     <div className="text-center py-12">
                         <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -352,28 +339,26 @@ const TeamChatWindow: React.FC<TeamChatWindowProps> = ({
                 ) : (
                     messages.map((msg) => {
                         const isMe = msg.user_id === currentUserId;
-                        const sender = teamMembers.find(m => m.user_id === msg.user_id);
-
                         return (
                             <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                 <div className={`flex items-end gap-2 max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                     {/* Avatar */}
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${isMe
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'bg-gradient-to-br from-slate-700 to-slate-600 text-slate-300'
+                                        ? 'bg-indigo-500 text-white'
+                                        : 'bg-gradient-to-br from-slate-700 to-slate-600 text-slate-300'
                                         }`}>
                                         {isMe ? 'Me' : (msg.sender_name?.[0] || 'U')}
                                     </div>
 
                                     {/* Message Bubble */}
-                                    <div className={`px-4 py-2 rounded-2xl ${isMe
-                                            ? 'bg-indigo-600 text-white rounded-br-none'
-                                            : 'bg-[#0b0f1a] border border-white/10 text-slate-200 rounded-bl-none'
+                                    <div className={`px-4 py-3 rounded-2xl shadow-xl transition-all hover:scale-[1.01] ${isMe
+                                        ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-none shadow-indigo-500/20'
+                                        : 'bg-[#0b0f1a] border border-white/10 text-slate-200 rounded-bl-none shadow-black/40'
                                         }`}>
                                         {!isMe && (
-                                            <p className="text-xs font-bold mb-1 opacity-70">{msg.sender_name}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-indigo-400">{msg.sender_name}</p>
                                         )}
-                                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                                        <p className="text-sm leading-relaxed font-medium">{msg.content}</p>
                                     </div>
                                 </div>
 
@@ -391,21 +376,23 @@ const TeamChatWindow: React.FC<TeamChatWindowProps> = ({
 
                 {/* Typing Indicator */}
                 {typingUsers.length > 0 && (
-                    <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                    <div className="flex items-center gap-2 text-slate-500 text-xs font-medium ml-2">
                         <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span>{typingUsers.map(u => u.user_name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            {typingUsers.map(u => u.user_name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                        </span>
                     </div>
                 )}
 
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <div className="p-4 bg-[#0b0f1a] border-t border-white/5">
+            {/* Input Area */}
+            <div className="p-4 bg-[#0b0f1a]/50 border-t border-white/5 backdrop-blur-sm">
                 <div className="flex gap-3">
                     <input
                         type="text"
@@ -416,18 +403,21 @@ const TeamChatWindow: React.FC<TeamChatWindowProps> = ({
                         }}
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                         placeholder="Type a message..."
-                        className="flex-1 bg-[#06080f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="flex-1 bg-[#06080f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner"
                         disabled={isSending}
                     />
                     <button
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim() || isSending}
-                        className="px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-bold"
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-black uppercase italic text-xs tracking-widest"
                     >
                         {isSending ? (
                             <Loader size={18} className="animate-spin" />
                         ) : (
-                            <Send size={18} />
+                            <>
+                                <span className="hidden sm:inline">Send</span>
+                                <Send size={16} />
+                            </>
                         )}
                     </button>
                 </div>

@@ -378,9 +378,9 @@ const AppContent: React.FC = () => {
     return excluded.some(ex => path === ex || path.startsWith(ex + '/'));
   };
 
-  const showNavbar = !matchesPath(location.pathname, ['/login', '/signup', '/blueprint', '/project-details', '/planner', '/daily-tasks', '/dashboard', '/team-review', '/settings', '/team', '/mission']);
+  const showNavbar = !matchesPath(location.pathname, ['/login', '/signup', '/blueprint', '/project-details', '/planner', '/daily-tasks', '/dashboard', '/team-review', '/settings', '/team', '/mission', '/team-chat']);
   const showChat = !matchesPath(location.pathname, ['/login', '/signup', '/blueprint', '/project-details', '/planner', '/daily-tasks']);
-  const showFooter = !matchesPath(location.pathname, ['/login', '/signup', '/blueprint', '/project-details', '/planner', '/daily-tasks', '/dashboard', '/team-review', '/settings', '/team', '/mission', '/chat']);
+  const showFooter = !matchesPath(location.pathname, ['/login', '/signup', '/blueprint', '/project-details', '/planner', '/daily-tasks', '/dashboard', '/team-review', '/settings', '/team', '/mission', '/chat', '/team-chat']);
 
   if (isAuthChecking) {
     return (

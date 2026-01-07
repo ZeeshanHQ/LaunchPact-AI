@@ -1032,6 +1032,28 @@ app.post('/api/plans/save', async (req, res) => {
     }
 
     console.log(`[PLAN] ✅ Plan saved successfully:`, data?.[0]?.id);
+
+    // Ensure creator is in team_members as founder
+    if (userId) {
+      console.log(`[PLAN] Adding creator ${userId} to team_members...`);
+      const { error: memberError } = await supabase.from('team_members').upsert({
+        plan_id: planId,
+        user_id: userId,
+        email: teamSetup?.createdBy || '',
+        name: teamSetup?.createdByName || 'Founder',
+        role: 'founder',
+        expertise: 'Founder & Visionary',
+        approval_required: true,
+        has_approved: true,
+        invited_at: new Date().toISOString(),
+        joined_at: new Date().toISOString()
+      }, { onConflict: 'plan_id,user_id' }); // Adjust conflict mapping if needed
+
+      if (memberError) {
+        console.warn(`[PLAN] Warning: Failed to add creator to team_members:`, memberError.message);
+      }
+    }
+
     res.json({ success: true, data });
   } catch (error) {
     console.error("❌ Save Plan failed:", error.message, error);
