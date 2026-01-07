@@ -24,6 +24,7 @@ import MissionPage from './components/MissionPage';
 import TeamPage from './components/TeamPage';
 import SettingsPage from './components/SettingsPage';
 import DashboardLayout from './components/DashboardLayout';
+import TeamChatHub from './components/TeamChatHub';
 import { supabase } from './services/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -223,7 +224,7 @@ const AppContent: React.FC = () => {
       console.log(`🚀 Starting blueprint generation for: "${idea.slice(0, 50)}..."`);
       const blueprint = await generateProductBlueprint(idea);
       console.log(`✅ Blueprint generated successfully: ${blueprint.productName}`);
-      
+
       setCurrentBlueprint(blueprint);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -304,7 +305,7 @@ const AppContent: React.FC = () => {
 
   const handleLockPlan = async (plan: LockedPlan) => {
     setActivePlan(plan);
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       localStorage.setItem(`forge_active_plan_${user.id}`, JSON.stringify(plan));
@@ -476,6 +477,8 @@ const AppContent: React.FC = () => {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/team-review/:planId" element={<TeamReviewDashboard />} />
             <Route path="/planner/:planId" element={<ResumePlanner />} />
+            <Route path="/team-chat" element={<TeamChatHub />} />
+            <Route path="/team-chat/:planId" element={<TeamChatHub />} />
           </Route>
         </Routes>
       </main>

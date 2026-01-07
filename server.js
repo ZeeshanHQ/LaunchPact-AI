@@ -1386,13 +1386,134 @@ app.post('/api/notifications/:id/read', async (req, res) => {
 
     if (error) throw error;
     res.json({ success: true });
+  }
+});
+
+// === TEAM CHAT ENDPOINTS ===
+
+// 21. Get User Teams (for chat sidebar)
+app.get('/api/team/user-teams/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const { data, error } = await supabase
+      .from('user_team_chats')
+      .select('*')
+      .or(`user_id.eq.${userId},created_by.eq.${userId}`);
+
+    if (error) throw error;
+
+    // Format the response
+    const teams = (data || []).map(team => ({
+      plan_id: team.plan_id,
+      product_name: team.product_name,
+      role: team.role || 'founder',
+      member_count: team.member_count || 1,
+      last_message: team.last_message
+    }));
+
+    res.json({ success: true, teams });
   } catch (error) {
-    console.error('❌ Mark read failed:', error.message);
+    console.error('❌ Get user teams failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 22. Get Team Messages
+app.get('/api/team/messages/:planId', async (req, res) => {
+  const { planId } = req.params;
+  const { limit = 100, offset = 0 } = req.query;
+
+  try {
+    const { data, error } = await supabase
+      .from('team_messages')
+      .select(`
+        *,
+        message_read_status (
+          user_id,
+          read_at,
+          delivered_at
+        )
+      `)
+      .eq('plan_id', planId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    res.json({ success: true, messages: data || [] });
+  } catch (error) {
+    console.error('❌ Get team messages failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 23. Mark Messages as Read
+app.post('/api/team/messages/:planId/read', async (req, res) => {
+  const { planId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const { error } = await supabase.rpc('mark_messages_read', {
+      p_plan_id: planId,
+      p_user_id: userId
+    });
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Mark messages read failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 24. Update Typing Status
+app.post('/api/team/typing/:planId', async (req, res) => {
+  const { planId } = req.params;
+  const { userId, userName, isTyping } = req.body;
+
+  try {
+    const { error } = await supabase
+      .from('typing_indicators')
+      .upsert({
+        plan_id: planId,
+        user_id: userId,
+        user_name: userName,
+        is_typing: isTyping,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Update typing status failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 25. Get Unread Count
+app.get('/api/team/unread/:planId/:userId', async (req, res) => {
+  const { planId, userId } = req.params;
+
+  try {
+    const { data, error } = await supabase.rpc('get_unread_count', {
+      p_plan_id: planId,
+      p_user_id: userId
+    });
+
+    if (error) throw error;
+
+    res.json({ success: true, count: data || 0 });
+  } catch (error) {
+    console.error('❌ Get unread count failed:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Final check endpoint
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'active', protocol: 'LaunchPact-v1' });
 });

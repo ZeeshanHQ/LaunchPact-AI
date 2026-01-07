@@ -204,6 +204,7 @@ export type TeamMemberRole =
 
 export interface TeamMember {
   id: string;
+  user_id?: string; // Added for chat functionality
   name: string;
   email: string;
   expertise: string; // e.g., "Frontend Developer", "UI/UX Designer", "Growth Marketing"

@@ -35,7 +35,8 @@ import {
   Briefcase,
   Layers,
   Cpu,
-  Users
+  Users,
+  MessageCircle
 } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, Cell, XAxis, Tooltip, PieChart, Pie, AreaChart, Area } from 'recharts';
 import { supabase } from '../services/supabase';
@@ -285,6 +286,16 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, userStats, activePlan, 
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 group-hover:text-white">Team Collective</p>
               <p className="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">Human & AI Assets</p>
+            </div>
+          </button>
+
+          <button onClick={() => navigate('/team-chat')} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group hover:bg-white/5 text-slate-400">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-white/5 group-hover:border-indigo-500/30 group-hover:bg-indigo-500/10 transition-all">
+              <MessageCircle size={18} className="group-hover:text-indigo-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 group-hover:text-white">Team Chat</p>
+              <p className="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">Real-time Messaging</p>
             </div>
           </button>
 
