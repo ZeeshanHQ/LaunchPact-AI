@@ -33,7 +33,9 @@ app.use((req, res, next) => {
 });
 
 // --- Configuration ---
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || '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';
+// Hardcoded key as primary source to fix 401 errors
+const HARDCODED_KEY = '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';
+const OPENROUTER_API_KEY = (HARDCODED_KEY || process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -66,7 +68,8 @@ const MODELS = [
 console.log("================================================");
 console.log("🔥 LAUNCHPACT AI BACKEND IGNITION SEQUENCE STARTED");
 console.log("================================================");
-console.log(`🔑 OpenRouter API Key: ${OPENROUTER_API_KEY ? 'LOADED ✓ (' + OPENROUTER_API_KEY.substring(0, 8) + '...)' : 'MISSING ✗'}`);
+console.log(`🔑 OpenRouter API Key: ${OPENROUTER_API_KEY ? 'LOADED ✓ (' + OPENROUTER_API_KEY.substring(0, 5) + '...' + OPENROUTER_API_KEY.slice(-5) + ')' : 'MISSING ✗'}`);
+console.log(`   Key Length: ${OPENROUTER_API_KEY.length}`);
 console.log(`📧 Resend API Key: ${RESEND_API_KEY ? 'LOADED ✓' : 'MISSING ✗'}`);
 console.log(`📧 Sender Email: ${SENDER_EMAIL}`);
 console.log(`🗄️  Supabase URL: ${SUPABASE_URL ? 'LOADED ✓' : 'MISSING ✗'}`);
