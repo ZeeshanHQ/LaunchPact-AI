@@ -88,11 +88,19 @@ const DailyTaskEngine: React.FC<DailyTaskEngineProps> = ({
             setUnlockedBadges(prev => {
                 const existingIds = new Set(prev.map(b => b.id));
                 const uniqueNewBadges = availableBadges.filter(b => !existingIds.has(b.id));
+
                 if (uniqueNewBadges.length === 0) return prev;
+
+                // ONLY show celebration if we already had some badges (not initial load)
+                // OR if we are explicitly earnign them after mount.
+                // Using badgesInitialized ref to track this.
+                if (badgesInitialized.current) {
+                    setShowCelebration(true);
+                    setTimeout(() => setShowCelebration(false), 3000);
+                }
+
                 return [...prev, ...uniqueNewBadges];
             });
-            setShowCelebration(true);
-            setTimeout(() => setShowCelebration(false), 3000);
         }
     }, [overallProgress, availableBadges]);
 
@@ -100,11 +108,13 @@ const DailyTaskEngine: React.FC<DailyTaskEngineProps> = ({
     const badgesInitialized = useRef(false);
 
     useEffect(() => {
+        // Mark as initialized once we've had a chance to load existing badges
         if (!badgesInitialized.current) {
-            if (unlockedBadges.length > 0) {
+            // Give it a tiny bit of time to sync the initial availableBadges
+            const timer = setTimeout(() => {
                 badgesInitialized.current = true;
-            }
-            return;
+            }, 500);
+            return () => clearTimeout(timer);
         }
 
         const lastUnlocked = unlockedBadges[unlockedBadges.length - 1];

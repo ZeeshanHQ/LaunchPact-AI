@@ -53,10 +53,9 @@ const SettingsPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('profile');
 
     const tabs = [
-        { id: 'profile', icon: User, label: 'Founder Identity' },
-        { id: 'notifications', icon: Bell, label: 'Signal Protocols' },
-        { id: 'security', icon: Shield, label: 'Vault & Security' },
-        { id: 'ai', icon: Cpu, label: 'AI Cognition' },
+        { id: 'profile', icon: User, label: 'Profile' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'security', icon: Shield, label: 'Account Security' },
     ];
 
     if (loading) {
@@ -73,13 +72,13 @@ const SettingsPage: React.FC = () => {
                 {/* Header */}
                 <div className="space-y-4 mb-16">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
-                        <Settings size={12} /> Mission Control Center
+                        <Settings size={12} /> User Settings
                     </div>
                     <h1 className="text-5xl md:text-7xl font-black text-white leading-none tracking-tightest uppercase italic">
-                        Settings.<br />
+                        Account.<br />
                     </h1>
                     <p className="text-slate-500 max-w-md font-bold text-sm leading-relaxed uppercase tracking-widest">
-                        Configure your cognitive protocols and foundry environment.
+                        Manage your profile and account preferences.
                     </p>
                 </div>
 
@@ -114,8 +113,8 @@ const SettingsPage: React.FC = () => {
                             <section className="bg-[#0b0f1a]/50 border border-white/5 rounded-[3rem] p-8 md:p-12 space-y-10 backdrop-blur-sm group hover:border-indigo-500/30 transition-all duration-700">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black text-white tracking-tight uppercase italic">Architect Profile</h3>
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Your digital footprint in the foundry</p>
+                                        <h3 className="text-xl font-black text-white tracking-tight uppercase italic">User Profile</h3>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Update your personal information</p>
                                     </div>
                                     <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-2xl border border-white/20">
                                         {profile?.full_name?.[0]}
@@ -124,19 +123,20 @@ const SettingsPage: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Display Name</label>
                                         <input
                                             type="text"
-                                            defaultValue={profile?.full_name}
+                                            value={profile?.full_name}
+                                            onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                                             className="w-full bg-[#06080f] border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                                             placeholder="Enter your name"
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Registry Email</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
                                         <input
                                             type="email"
-                                            defaultValue={profile?.email}
+                                            value={profile?.email}
                                             className="w-full bg-[#06080f]/50 border border-white/5 rounded-[1.5rem] px-6 py-4 text-slate-600 text-sm font-bold cursor-not-allowed italic"
                                             disabled
                                         />
@@ -145,11 +145,19 @@ const SettingsPage: React.FC = () => {
 
                                 <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                                     <div className="flex flex-col">
-                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Registry ID: {profile?.id}</p>
-                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">Status: Verified Founder</p>
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Account ID: {profile?.id?.slice(0, 18)}...</p>
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">Status: Active</p>
                                     </div>
-                                    <button className="w-full sm:w-auto px-10 py-4 bg-white text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/5 border border-white">
-                                        Save Changes
+                                    <button
+                                        onClick={async () => {
+                                            const { error } = await supabase.auth.updateUser({
+                                                data: { full_name: profile.full_name }
+                                            });
+                                            if (!error) alert('Profile updated successfully!');
+                                        }}
+                                        className="w-full sm:w-auto px-10 py-4 bg-white text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/5 border border-white"
+                                    >
+                                        Save Profile
                                     </button>
                                 </div>
                             </section>
@@ -158,7 +166,7 @@ const SettingsPage: React.FC = () => {
                         {activeTab === 'notifications' && (
                             <section className="bg-[#0b0f1a]/50 border border-white/5 rounded-[3rem] p-8 md:p-12 space-y-8 backdrop-blur-sm">
                                 <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-white tracking-tight uppercase italic">Signal Protocols</h3>
+                                    <h3 className="text-xl font-black text-white tracking-tight uppercase italic">Notification Settings</h3>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">How the system communicates with you</p>
                                 </div>
 
@@ -186,8 +194,8 @@ const SettingsPage: React.FC = () => {
                         {activeTab === 'security' && (
                             <section className="bg-[#0b0f1a]/50 border border-white/5 rounded-[3rem] p-8 md:p-12 space-y-8 backdrop-blur-sm">
                                 <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-white tracking-tight uppercase italic">Vault Access</h3>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Authentication & Secure Tunnels</p>
+                                    <h3 className="text-xl font-black text-white tracking-tight uppercase italic">Security</h3>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account Protection & Access</p>
                                 </div>
 
                                 <div className="p-8 bg-red-500/5 border border-red-500/10 rounded-[2rem] space-y-6">
