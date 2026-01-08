@@ -5,7 +5,6 @@ import { Rocket, Shield, Target, Zap, ArrowRight } from 'lucide-react';
 interface MissionPageProps {
     plan: LockedPlan | null;
     userStats: UserStats;
-    onUpdateXP: (amount: number) => void;
 }
 
 const MissionPage: React.FC<MissionPageProps> = ({ plan, userStats }) => {
