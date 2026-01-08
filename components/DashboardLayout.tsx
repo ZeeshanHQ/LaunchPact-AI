@@ -23,8 +23,13 @@ import {
     ListTodo
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { LockedPlan } from '../types';
 
-const DashboardLayout: React.FC = () => {
+interface DashboardLayoutProps {
+    activePlan?: LockedPlan | null;
+}
+
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [userProfile, setUserProfile] = useState<{ id: string; email: string; full_name?: string } | null>(null);
@@ -85,8 +90,10 @@ const DashboardLayout: React.FC = () => {
         { icon: Layout, label: 'Command Center', path: '/dashboard' },
         { icon: Activity, label: 'Active Mission', path: '/mission' },
         { icon: ListTodo, label: 'Daily Tasks', path: '/daily-tasks' },
-        { icon: Users, label: 'Team & Access', path: '/team' },
-        { icon: MessageSquare, label: 'Team Chat', path: '/team-chat' },
+        ...(activePlan?.teamSetup?.setupType === 'solo' ? [] : [
+            { icon: Users, label: 'Team & Access', path: '/team' },
+            { icon: MessageSquare, label: 'Team Chat', path: '/team-chat' },
+        ]),
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 

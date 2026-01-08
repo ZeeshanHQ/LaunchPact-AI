@@ -486,7 +486,7 @@ const AppContent: React.FC = () => {
           } />
 
           {/* Internal Dashboard Routes */}
-          <Route element={<DashboardLayout />}>
+          <Route element={<DashboardLayout activePlan={activePlan} />}>
             <Route path="/dashboard" element={
               isLoggedIn ? (
                 activePlan?.teamSetup?.setupType === 'solo' ? (
