@@ -169,7 +169,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
                         </button>
                     ))}
 
-
                 </nav>
 
                 {/* Collapse Toggle (Desktop) */}
