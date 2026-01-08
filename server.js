@@ -1172,6 +1172,34 @@ app.get('/api/team/collective/:userId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Helper function to get base URL from request
+const getBaseUrl = (req) => {
+  // Try to get from environment variable first
+  if (process.env.VITE_APP_URL) {
+    return process.env.VITE_APP_URL;
+  }
+  
+  // Try to get from request headers (for Vercel or similar)
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'launchpact-ai.vercel.app';
+  
+  // Build base URL
+  let baseUrl = `${protocol}://${host}`;
+  
+  // Remove port if default
+  if (host.includes(':3000') || host.includes(':5173')) {
+    baseUrl = baseUrl.replace(/:\d+$/, '');
+  }
+  
+  // Fallback to production URL
+  if (!baseUrl || baseUrl.includes('localhost')) {
+    baseUrl = 'https://launchpact-ai.vercel.app';
+  }
+  
+  return baseUrl;
+};
+
 app.post('/api/team/send-invites', async (req, res) => {
   const { planId, productName, teamMembers, createdByName, createdByEmail } = req.body;
   console.log(`[TEAM] 📧 Sending invites for plan: ${planId}, product: ${productName}`);
@@ -1259,7 +1287,7 @@ app.post('/api/team/send-invites', async (req, res) => {
             </p>
 
             <div style="text-align: center; margin: 40px 0;">
-              <a href="${process.env.VITE_APP_URL || 'http://localhost:5173'}/team-invite/${inviteToken}" 
+              <a href="${getBaseUrl(req)}/team-invite/${inviteToken}" 
                  style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 16px 48px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">
                 View Plan & ${approvalRequired ? 'Approve' : 'Review'}
               </a>
@@ -1314,6 +1342,28 @@ app.get('/api/team/members/:planId', async (req, res) => {
   }
 });
 
+// 17. Get Team Invite by Token (to verify and show invitation details)
+app.get('/api/team/invite/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const { data: member, error: fetchError } = await supabase
+      .from('team_members')
+      .select('*, plans(product_name)')
+      .eq('invite_token', token)
+      .single();
+
+    if (fetchError || !member) {
+      return res.status(404).json({ error: 'Invalid or expired invite' });
+    }
+
+    res.json({ success: true, member });
+  } catch (error) {
+    console.error('❌ Get invite failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 17. Accept Team Invite
 app.post('/api/team/accept-invite/:token', async (req, res) => {
   const { token } = req.params;
@@ -1331,6 +1381,11 @@ app.post('/api/team/accept-invite/:token', async (req, res) => {
       return res.status(404).json({ error: 'Invalid or expired invite' });
     }
 
+    // Check if already joined
+    if (member.joined_at) {
+      return res.status(400).json({ error: 'Invitation already accepted' });
+    }
+
     // Update member as joined
     const { error: updateError } = await supabase
       .from('team_members')
@@ -1342,9 +1397,80 @@ app.post('/api/team/accept-invite/:token', async (req, res) => {
 
     if (updateError) throw updateError;
 
-    res.json({ success: true, member });
+    // Fetch updated member with plan details
+    const { data: updatedMember } = await supabase
+      .from('team_members')
+      .select('*, plans(product_name)')
+      .eq('invite_token', token)
+      .single();
+
+    res.json({ success: true, member: updatedMember });
   } catch (error) {
     console.error('❌ Accept invite failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 17a. Ignore Team Invite
+app.post('/api/team/ignore-invite/:token', async (req, res) => {
+  const { token } = req.params;
+  const { userId } = req.body;
+
+  try {
+    // Find the invite
+    const { data: member, error: fetchError } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('invite_token', token)
+      .single();
+
+    if (fetchError || !member) {
+      return res.status(404).json({ error: 'Invalid or expired invite' });
+    }
+
+    // Mark as ignored by setting user_id but keeping joined_at null
+    // Or we could add an ignored_at field - for now, we'll just leave it as is
+    // The invite will remain in "Awaiting Uplink" but can be filtered client-side
+    
+    res.json({ success: true, message: 'Invitation ignored' });
+  } catch (error) {
+    console.error('❌ Ignore invite failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 17b. Accept Later Team Invite (mark for later)
+app.post('/api/team/accept-later/:token', async (req, res) => {
+  const { token } = req.params;
+  const { userId } = req.body;
+
+  try {
+    // Find the invite
+    const { data: member, error: fetchError } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('invite_token', token)
+      .single();
+
+    if (fetchError || !member) {
+      return res.status(404).json({ error: 'Invalid or expired invite' });
+    }
+
+    // Store user_id but don't set joined_at - this marks it as "accepted later"
+    // They can come back and fully accept it later
+    const { error: updateError } = await supabase
+      .from('team_members')
+      .update({
+        user_id: userId
+        // joined_at stays null - means they've seen it but not fully joined
+      })
+      .eq('invite_token', token);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, message: 'Invitation saved for later', member });
+  } catch (error) {
+    console.error('❌ Accept later failed:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

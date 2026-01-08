@@ -43,3 +43,4 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications(user_id, is_read) WHERE is_read = FALSE;
 
 
+

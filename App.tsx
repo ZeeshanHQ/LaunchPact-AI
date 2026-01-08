@@ -92,6 +92,11 @@ const AppContent: React.FC = () => {
       if (session) {
         setIsLoggedIn(true);
         loadUserData(session.user.id);
+        // Check for pending invite token after login
+        const pendingToken = localStorage.getItem('pending_invite_token');
+        if (pendingToken && location.pathname !== `/team-invite/${pendingToken}`) {
+          navigate(`/team-invite/${pendingToken}`);
+        }
       } else {
         // Only reset local state, do NOT call signOut() again
         resetState();
@@ -369,7 +374,12 @@ const AppContent: React.FC = () => {
       }
     }
 
-    handleViewChange('daily-tasks');
+    // Redirect based on plan type
+    if (plan.teamSetup?.setupType === 'team') {
+      navigate('/team');
+    } else {
+      handleViewChange('daily-tasks');
+    }
   };
 
   const handleUpdateXP = async (amount: number) => {
@@ -499,14 +509,8 @@ const AppContent: React.FC = () => {
                     onGoToJourney={() => navigate('/daily-tasks')}
                   />
                 ) : (
-                  <Dashboard
-                    projects={projects}
-                    userStats={userStats}
-                    activePlan={activePlan}
-                    onSelectProject={handleSelectProject}
-                    onNewProject={handleNewFromTemplate}
-                    onGoToJourney={() => navigate('/daily-tasks')}
-                  />
+                  // If user has team plan, redirect to team dashboard
+                  <Navigate to="/team" replace />
                 )
               ) : <Navigate to="/" />
             } />
