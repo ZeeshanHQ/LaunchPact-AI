@@ -97,7 +97,16 @@ const DailyTaskEngine: React.FC<DailyTaskEngineProps> = ({
     }, [overallProgress, availableBadges]);
 
     // Separate effect for notifications to avoid warning
+    const badgesInitialized = useRef(false);
+
     useEffect(() => {
+        if (!badgesInitialized.current) {
+            if (unlockedBadges.length > 0) {
+                badgesInitialized.current = true;
+            }
+            return;
+        }
+
         const lastUnlocked = unlockedBadges[unlockedBadges.length - 1];
         if (lastUnlocked) {
             notify('Badge Unlocked!', lastUnlocked.title, 'achievement');

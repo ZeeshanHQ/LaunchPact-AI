@@ -105,6 +105,7 @@ export interface Project {
   lockedDecisions: LockedDecision[]; // New: Decision Locking
   executionPlan?: ExecutionTask[]; // New: Checklist Engine
   timelineSimulation?: TimelineSimulation; // New: Timeline Sim
+  mode?: 'solo' | 'team'; // New: Solo or Team Mode
 }
 
 export interface Achievement {
@@ -241,6 +242,7 @@ export interface LockedPlan {
   currentDayNumber?: number;
   teamSetup: TeamSetup; // NEW: Team collaboration data
   canLock: boolean; // true if solo OR all required approvals received
+  mode: 'solo' | 'team';
 }
 
 export interface JourneyState {

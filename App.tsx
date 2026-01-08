@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import BlueprintView from './components/BlueprintView';
 import Dashboard from './components/Dashboard';
+import SoloDashboard from './components/SoloDashboard';
 import ForgeAssistant from './components/ForgeAssistant';
 import GuidedBuilder from './components/GuidedBuilder';
 import LaunchPlanner from './components/LaunchPlanner';
@@ -356,7 +357,10 @@ const AppContent: React.FC = () => {
       createdAt: plan.lockedAt,
       niche: "Startup",
       guidedProgress: { currentStepId: 'done', completedSteps: ['all'], selections: {} },
-      lockedDecisions: []
+      niche: "Startup",
+      guidedProgress: { currentStepId: 'done', completedSteps: ['all'], selections: {} },
+      lockedDecisions: [],
+      mode: plan.teamSetup?.setupType === 'solo' ? 'solo' : 'team'
     };
 
     if (!projects.find(p => p.id === plan.id)) {
@@ -487,14 +491,25 @@ const AppContent: React.FC = () => {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={
               isLoggedIn ? (
-                <Dashboard
-                  projects={projects}
-                  userStats={userStats}
-                  activePlan={activePlan}
-                  onSelectProject={handleSelectProject}
-                  onNewProject={handleNewFromTemplate}
-                  onGoToJourney={() => navigate('/daily-tasks')}
-                />
+                activePlan?.teamSetup?.setupType === 'solo' ? (
+                  <SoloDashboard
+                    projects={projects}
+                    userStats={userStats}
+                    activePlan={activePlan}
+                    onSelectProject={handleSelectProject}
+                    onNewProject={handleNewFromTemplate}
+                    onGoToJourney={() => navigate('/daily-tasks')}
+                  />
+                ) : (
+                  <Dashboard
+                    projects={projects}
+                    userStats={userStats}
+                    activePlan={activePlan}
+                    onSelectProject={handleSelectProject}
+                    onNewProject={handleNewFromTemplate}
+                    onGoToJourney={() => navigate('/daily-tasks')}
+                  />
+                )
               ) : <Navigate to="/" />
             } />
 
