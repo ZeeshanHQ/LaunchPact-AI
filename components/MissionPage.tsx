@@ -1,7 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { LockedPlan, UserStats } from '../types';
-import DailyTaskEngine from './DailyTaskEngine';
 import { Rocket, Shield, Target, Zap, ArrowRight } from 'lucide-react';
 
 interface MissionPageProps {
