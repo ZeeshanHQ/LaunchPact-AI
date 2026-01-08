@@ -169,21 +169,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
                         </button>
                     ))}
 
-                    <div className="pt-10">
-                        {!isSidebarCollapsed && (
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-6 px-4">Infrastructure</p>
-                        )}
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-red-400 hover:bg-red-400/5 border border-transparent rounded-2xl transition-all group"
-                            title={isSidebarCollapsed ? 'Sign Out' : ''}
-                        >
-                            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform flex-shrink-0" />
-                            {!isSidebarCollapsed && (
-                                <span className="font-black text-xs uppercase tracking-widest whitespace-nowrap">Sign Out</span>
-                            )}
-                        </button>
-                    </div>
+
                 </nav>
 
                 {/* Collapse Toggle (Desktop) */}

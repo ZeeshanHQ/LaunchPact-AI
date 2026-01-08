@@ -58,13 +58,7 @@ const SettingsPage: React.FC = () => {
         { id: 'security', icon: Shield, label: 'Account Security' },
     ];
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-[#06080f]">
-                <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-screen bg-[#06080f] p-6 md:p-12 xl:p-20 overflow-y-auto">
@@ -126,8 +120,8 @@ const SettingsPage: React.FC = () => {
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Display Name</label>
                                         <input
                                             type="text"
-                                            value={profile?.full_name}
-                                            onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                                            value={profile?.full_name || ''}
+                                            onChange={(e) => setProfile((prev: any) => prev ? { ...prev, full_name: e.target.value } : null)}
                                             className="w-full bg-[#06080f] border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                                             placeholder="Enter your name"
                                         />
@@ -224,29 +218,7 @@ const SettingsPage: React.FC = () => {
                             </section>
                         )}
 
-                        {activeTab === 'ai' && (
-                            <section className="bg-[#0b0f1a]/50 border border-white/5 rounded-[3rem] p-8 md:p-12 space-y-8 backdrop-blur-sm">
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-white tracking-tight uppercase italic">AI Cognition</h3>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tuning the neural response engine</p>
-                                </div>
 
-                                <div className="flex items-center justify-between p-8 bg-indigo-500/5 border border-indigo-500/10 rounded-[2rem] group hover:border-indigo-500/30 transition-all">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
-                                            <Cpu size={28} className="animate-pulse" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-black text-white text-md uppercase italic">High-Stakes Mode</h4>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Enables critical, brutally honest AI reasoning</p>
-                                        </div>
-                                    </div>
-                                    <div className="w-14 h-7 bg-indigo-600 rounded-full relative cursor-pointer shadow-lg shadow-indigo-600/30">
-                                        <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-md"></div>
-                                    </div>
-                                </div>
-                            </section>
-                        )}
                     </div>
                 </div>
             </div>
