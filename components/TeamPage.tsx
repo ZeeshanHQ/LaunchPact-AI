@@ -146,7 +146,7 @@ const TeamPage: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={fetchTeamData}
+                        onClick={() => fetchTeamData()}
                         className="inline-flex items-center gap-3 bg-white/5 border border-white/5 text-indigo-400 hover:bg-white/10 hover:text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all group"
                     >
                         <RefreshCw size={18} className={`${isLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'}`} />
@@ -300,8 +300,8 @@ const TeamPage: React.FC = () => {
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{teamMembers.length} Total</span>
                     </div>
 
-                {/* Team Spreadsheet */}
-                <div className="bg-[#0b0f1a] rounded-[3.5rem] border border-white/5 shadow-2xl overflow-hidden">
+                    {/* Team Spreadsheet */}
+                    <div className="bg-[#0b0f1a] rounded-[3.5rem] border border-white/5 shadow-2xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -385,6 +385,7 @@ const TeamPage: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
 
