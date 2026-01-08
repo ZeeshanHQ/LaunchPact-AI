@@ -522,7 +522,7 @@ const AppContent: React.FC = () => {
               ) : <Navigate to={isLoggedIn ? "/dashboard" : "/"} />
             } />
 
-            <Route path="/mission" element={<MissionPage plan={activePlan} userStats={userStats} onUpdateXP={handleUpdateXP} />} />
+            <Route path="/mission" element={<MissionPage plan={activePlan} userStats={userStats} />} />
             <Route path="/team" element={<TeamPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/team-review/:planId" element={<TeamReviewDashboard />} />
