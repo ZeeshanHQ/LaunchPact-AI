@@ -251,7 +251,8 @@ const LaunchPlanner: React.FC<LaunchPlannerProps> = ({ blueprint, initialState, 
                 completedTasksCount: 0,
                 totalTasksCount: dailyTasks?.length || 0,
                 teamSetup: teamSetup!,
-                canLock: teamSetup?.setupType === 'solo' || teamSetup?.allRequiredApproved || false
+                canLock: teamSetup?.setupType === 'solo' || teamSetup?.allRequiredApproved || false,
+                mode: teamSetup?.setupType || 'solo'
             };
 
             onLockPlan(lockedPlan);

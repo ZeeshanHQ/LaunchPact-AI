@@ -357,8 +357,6 @@ const AppContent: React.FC = () => {
       createdAt: plan.lockedAt,
       niche: "Startup",
       guidedProgress: { currentStepId: 'done', completedSteps: ['all'], selections: {} },
-      niche: "Startup",
-      guidedProgress: { currentStepId: 'done', completedSteps: ['all'], selections: {} },
       lockedDecisions: [],
       mode: plan.teamSetup?.setupType === 'solo' ? 'solo' : 'team'
     };
