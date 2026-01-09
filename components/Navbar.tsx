@@ -25,20 +25,52 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
     <>
       <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-700 ${scrolled ? 'pt-2' : 'pt-6'}`}>
         <nav className={`
-          relative px-6 py-3 rounded-full transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1)
+          relative px-6 py-2.5 rounded-full transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1)
           ${scrolled
-            ? 'bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] w-[92%] max-w-6xl'
+            ? 'bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] w-[92%] max-w-6xl'
             : 'bg-transparent w-[96%] max-w-7xl'}
         `}>
           <div className="flex items-center justify-between">
-            {/* Logo Section - Icon Only */}
-            <div
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={onGoHome}
-            >
-              <div className="relative">
-                <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                <img src="/logo_v2.png" alt="LaunchPact AI" className="relative h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
+            {/* Left Section: Logo & Primary Nav */}
+            <div className="flex items-center gap-8">
+              <div
+                className="flex items-center gap-3 cursor-pointer group"
+                onClick={onGoHome}
+              >
+                <div className="relative">
+                  <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                  <img src="/logo_v2.png" alt="LaunchPact AI" className="relative h-9 w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
+                </div>
+              </div>
+
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const section = document.getElementById('features');
+                    if (section) section.scrollIntoView({ behavior: 'smooth' });
+                    else onGoHome();
+                  }}
+                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                >
+                  Features
+                </button>
+                <button
+                  onClick={() => {
+                    const section = document.getElementById('pricing');
+                    if (section) section.scrollIntoView({ behavior: 'smooth' });
+                    else onGoHome();
+                  }}
+                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                >
+                  Pricing
+                </button>
+                <button
+                  onClick={() => onNavigate('/resources-blog')}
+                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                >
+                  Insights
+                </button>
               </div>
             </div>
 
@@ -64,8 +96,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
                     }}
                     className="relative group p-0.5 rounded-full bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-white/10 hover:border-white/30 transition-all"
                   >
-                    <div className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-indigo-400 overflow-hidden relative">
-                      <User size={18} />
+                    <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-indigo-400 overflow-hidden relative">
+                      <User size={16} />
                       <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                   </button>
@@ -74,16 +106,16 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => onNavigate('/login')}
-                    className="hidden sm:block text-slate-400 hover:text-white font-medium text-xs uppercase tracking-widest px-4 py-2 transition-colors"
+                    className="hidden sm:block text-slate-400 hover:text-white font-bold text-[10px] uppercase tracking-widest px-4 py-2 transition-colors"
                   >
                     Log In
                   </button>
                   <button
                     onClick={() => onNavigate('/signup')}
-                    className="relative group overflow-hidden rounded-full"
+                    className="relative group overflow-hidden rounded-full shadow-lg shadow-indigo-500/10"
                   >
                     <div className="absolute inset-0 bg-white transition-transform duration-500 group-hover:scale-105"></div>
-                    <div className="relative flex items-center gap-2 px-6 py-2.5 text-slate-950 font-bold text-xs uppercase tracking-widest">
+                    <div className="relative flex items-center gap-2 px-6 py-2.5 text-slate-950 font-black text-[10px] uppercase tracking-widest">
                       <span>Start Building</span>
                       <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
                     </div>

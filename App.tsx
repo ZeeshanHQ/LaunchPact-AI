@@ -28,6 +28,7 @@ import DashboardLayout from './components/DashboardLayout';
 import TeamChatHub from './components/TeamChatHub';
 import { supabase } from './services/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
+import { BlueprintProvider } from './components/BlueprintContext';
 
 type ViewState =
   | 'landing'
@@ -374,11 +375,12 @@ const AppContent: React.FC = () => {
       }
     }
 
-    // Redirect based on plan type
+    // Redirect based on plan type - show appropriate dashboard
     if (plan.teamSetup?.setupType === 'team') {
       navigate('/team');
     } else {
-      handleViewChange('daily-tasks');
+      // Solo founder -> Show SoloDashboard
+      navigate('/dashboard');
     }
   };
 
@@ -440,20 +442,21 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-600 bg-white">
-      {showNavbar && (
-        <Navbar
-          isLoggedIn={isLoggedIn}
-          onLogin={handleLogin}
-          onGoHome={() => handleViewChange('/')}
-          onGoDashboard={() => handleViewChange('/dashboard')}
-          onNavigate={(page) => handleViewChange(page)}
-          onLogout={handleUserLogout}
-        />
-      )}
+    <BlueprintProvider onCreateBlueprint={handleGenerate} isLoading={isLoading}>
+      <div className="min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-600 bg-white">
+        {showNavbar && (
+          <Navbar
+            isLoggedIn={isLoggedIn}
+            onLogin={handleLogin}
+            onGoHome={() => handleViewChange('/')}
+            onGoDashboard={() => handleViewChange('/dashboard')}
+            onNavigate={(page) => handleViewChange(page)}
+            onLogout={handleUserLogout}
+          />
+        )}
 
-      <main className="flex-1">
-        <Routes>
+        <main className="flex-1">
+          <Routes>
           <Route path="/" element={<LandingPage onGenerate={handleGenerate} isLoading={isLoading} />} />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} onGoSignup={() => navigate('/signup')} onBack={() => navigate('/')} />} />
           <Route path="/signup" element={<SignupPage onSignup={handleLogin} onGoLogin={() => navigate('/login')} onBack={() => navigate('/')} />} />
@@ -622,7 +625,8 @@ const AppContent: React.FC = () => {
           </div>
         </footer>
       )}
-    </div>
+      </div>
+    </BlueprintProvider>
   );
 };
 

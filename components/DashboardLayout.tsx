@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { LockedPlan } from '../types';
+import NewForgeModal from './NewForgeModal';
 
 interface DashboardLayoutProps {
     activePlan?: LockedPlan | null;
@@ -35,6 +36,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
     const [userProfile, setUserProfile] = useState<{ id: string; email: string; full_name?: string } | null>(null);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isNewForgeModalOpen, setIsNewForgeModalOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -200,7 +202,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Foundry Access</span>
                                 </div>
                                 <button
-                                    onClick={() => navigate('/')}
+                                    onClick={() => setIsNewForgeModalOpen(true)}
                                     className="w-full py-3 bg-white text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-white/5"
                                 >
                                     New Forge
@@ -320,6 +322,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* New Forge Modal */}
+            <NewForgeModal
+                isOpen={isNewForgeModalOpen}
+                onClose={() => setIsNewForgeModalOpen(false)}
+            />
         </div>
     );
 };

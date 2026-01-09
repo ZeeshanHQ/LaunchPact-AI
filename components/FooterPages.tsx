@@ -10,7 +10,7 @@ export const PricingPage: React.FC<{ onContactSales: () => void }> = ({ onContac
         <Zap size={12} /> Flexible Plans
       </div>
       <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase italic mb-6">
-        Invest in your <br/><span className="text-indigo-600">Unfair Advantage</span>
+        Invest in your <br /><span className="text-indigo-600">Unfair Advantage</span>
       </h1>
       <p className="text-xl text-slate-500 font-medium">
         From solo founders to scaling teams. Choose the engine that powers your next unicorn.
@@ -30,10 +30,10 @@ export const PricingPage: React.FC<{ onContactSales: () => void }> = ({ onContac
           Start for Free
         </button>
         <ul className="space-y-4 text-sm font-medium text-slate-600">
-          <li className="flex gap-3"><Check size={18} className="text-green-500"/> 3 Projects / Month</li>
-          <li className="flex gap-3"><Check size={18} className="text-green-500"/> Basic Market Analysis</li>
-          <li className="flex gap-3"><Check size={18} className="text-green-500"/> Standard AI Models</li>
-          <li className="flex gap-3"><Check size={18} className="text-green-500"/> Community Support</li>
+          <li className="flex gap-3"><Check size={18} className="text-green-500" /> 3 Projects / Month</li>
+          <li className="flex gap-3"><Check size={18} className="text-green-500" /> Basic Market Analysis</li>
+          <li className="flex gap-3"><Check size={18} className="text-green-500" /> Standard AI Models</li>
+          <li className="flex gap-3"><Check size={18} className="text-green-500" /> Community Support</li>
         </ul>
       </div>
 
@@ -52,11 +52,11 @@ export const PricingPage: React.FC<{ onContactSales: () => void }> = ({ onContac
           Get Pro Access
         </button>
         <ul className="space-y-4 text-sm font-medium text-slate-600">
-          <li className="flex gap-3"><Check size={18} className="text-indigo-600"/> Unlimited Projects</li>
-          <li className="flex gap-3"><Check size={18} className="text-indigo-600"/> Deep Competitor Intel</li>
-          <li className="flex gap-3"><Check size={18} className="text-indigo-600"/> <b>Gemini 2.5 Flash & Pro</b></li>
-          <li className="flex gap-3"><Check size={18} className="text-indigo-600"/> Guided Co-Founder Mode</li>
-          <li className="flex gap-3"><Check size={18} className="text-indigo-600"/> Export to PDF/Notion</li>
+          <li className="flex gap-3"><Check size={18} className="text-indigo-600" /> Unlimited Projects</li>
+          <li className="flex gap-3"><Check size={18} className="text-indigo-600" /> Deep Competitor Intel</li>
+          <li className="flex gap-3"><Check size={18} className="text-indigo-600" /> <b>Gemini 2.5 Flash & Pro</b></li>
+          <li className="flex gap-3"><Check size={18} className="text-indigo-600" /> Guided Co-Founder Mode</li>
+          <li className="flex gap-3"><Check size={18} className="text-indigo-600" /> Export to PDF/Notion</li>
         </ul>
       </div>
 
@@ -72,11 +72,11 @@ export const PricingPage: React.FC<{ onContactSales: () => void }> = ({ onContac
           Contact Sales
         </button>
         <ul className="space-y-4 text-sm font-medium text-slate-300">
-          <li className="flex gap-3"><Check size={18} className="text-white"/> Everything in Founder</li>
-          <li className="flex gap-3"><Check size={18} className="text-white"/> Team Collaboration</li>
-          <li className="flex gap-3"><Check size={18} className="text-white"/> White-label Reports</li>
-          <li className="flex gap-3"><Check size={18} className="text-white"/> API Access</li>
-          <li className="flex gap-3"><Check size={18} className="text-white"/> Dedicated Strategy Manager</li>
+          <li className="flex gap-3"><Check size={18} className="text-white" /> Everything in Founder</li>
+          <li className="flex gap-3"><Check size={18} className="text-white" /> Team Collaboration</li>
+          <li className="flex gap-3"><Check size={18} className="text-white" /> White-label Reports</li>
+          <li className="flex gap-3"><Check size={18} className="text-white" /> API Access</li>
+          <li className="flex gap-3"><Check size={18} className="text-white" /> Dedicated Strategy Manager</li>
         </ul>
       </div>
     </div>
@@ -93,7 +93,7 @@ export const EnterprisePage: React.FC = () => (
             <Shield size={12} /> Enterprise Security
           </div>
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none">
-            Build at <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Global Scale</span>
+            Build at <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Global Scale</span>
           </h1>
           <p className="text-xl text-slate-400 font-medium leading-relaxed">
             IdeaForge Enterprise provides the security, control, and custom AI modeling required by Fortune 500 innovation labs and Venture Capital firms.
@@ -108,31 +108,31 @@ export const EnterprisePage: React.FC = () => (
           </div>
         </div>
         <div className="w-full md:w-1/2 bg-gradient-to-tr from-indigo-900/50 to-slate-900 p-8 rounded-[3rem] border border-white/5 relative overflow-hidden group">
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-           <Server size={200} className="text-indigo-500/10 absolute -bottom-10 -right-10 group-hover:scale-110 transition-transform duration-1000" />
-           <div className="relative z-10 space-y-6">
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                 <Shield className="text-green-400" />
-                 <div>
-                    <h4 className="font-bold">SOC 2 Type II Compliant</h4>
-                    <p className="text-xs text-slate-400">Bank-grade data encryption and sovereignty.</p>
-                 </div>
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+          <Server size={200} className="text-indigo-500/10 absolute -bottom-10 -right-10 group-hover:scale-110 transition-transform duration-1000" />
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+              <Shield className="text-green-400" />
+              <div>
+                <h4 className="font-bold">SOC 2 Type II Compliant</h4>
+                <p className="text-xs text-slate-400">Bank-grade data encryption and sovereignty.</p>
               </div>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                 <Globe className="text-blue-400" />
-                 <div>
-                    <h4 className="font-bold">Regional Deployment</h4>
-                    <p className="text-xs text-slate-400">Host instances in US, EU, or APAC regions.</p>
-                 </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+              <Globe className="text-blue-400" />
+              <div>
+                <h4 className="font-bold">Regional Deployment</h4>
+                <p className="text-xs text-slate-400">Host instances in US, EU, or APAC regions.</p>
               </div>
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                 <Zap className="text-yellow-400" />
-                 <div>
-                    <h4 className="font-bold">Custom Fine-Tuned Models</h4>
-                    <p className="text-xs text-slate-400">Train Forge AI on your internal data.</p>
-                 </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+              <Zap className="text-yellow-400" />
+              <div>
+                <h4 className="font-bold">Custom Fine-Tuned Models</h4>
+                <p className="text-xs text-slate-400">Train Forge AI on your internal data.</p>
               </div>
-           </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -181,13 +181,13 @@ export const ResourcePage: React.FC<ResourcePageProps> = ({ type }) => {
           </h1>
         </div>
         <div className="relative w-full md:w-auto">
-          <input 
-            type="text" 
-            placeholder="Search articles..." 
+          <input
+            type="text"
+            placeholder="Search articles..."
             className="w-full md:w-80 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <div className="absolute left-3 top-3.5 text-slate-400">
-             <Layout size={16} />
+            <Layout size={16} />
           </div>
         </div>
       </div>
@@ -205,14 +205,14 @@ export const ResourcePage: React.FC<ResourcePageProps> = ({ type }) => {
               {art.title}
             </h3>
             <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
-               <span>{art.read} read</span>
-               <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-               <span>Oct 24, 2024</span>
+              <span>{art.read} read</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+              <span>Oct 24, 2024</span>
             </div>
           </div>
         ))}
       </div>
-      
+
       {type === 'guide' && (
         <div className="mt-20 p-10 bg-indigo-600 rounded-[3rem] text-white flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
@@ -220,7 +220,7 @@ export const ResourcePage: React.FC<ResourcePageProps> = ({ type }) => {
             <p className="text-indigo-200 font-medium">Get the 50-page PDF guide on building 0 to 1.</p>
           </div>
           <button className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-50 transition-colors flex items-center gap-2">
-            Download PDF <ArrowRight size={14}/>
+            Download PDF <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -230,36 +230,118 @@ export const ResourcePage: React.FC<ResourcePageProps> = ({ type }) => {
 
 /* --- LEGAL PAGE --- */
 export const LegalPage: React.FC<{ type: 'privacy' | 'terms' }> = ({ type }) => {
-  const title = type === 'privacy' ? "Privacy Policy" : "Terms of Service";
+  const isPrivacy = type === 'privacy';
+  const title = isPrivacy ? "Privacy Policy" : "Terms of Service";
+  const lastUpdated = "January 2026";
+
+  const sections = isPrivacy ? [
+    { id: 'collection', title: 'Data Collection' },
+    { id: 'usage', title: 'How We Use Data' },
+    { id: 'sharing', title: 'Data Sharing' },
+    { id: 'security', title: 'Security Measures' },
+    { id: 'cookies', title: 'Cookie Policy' },
+    { id: 'rights', title: 'Your Rights' },
+  ] : [
+    { id: 'acceptance', title: 'Acceptance of Terms' },
+    { id: 'license', title: 'Service License' },
+    { id: 'ai-content', title: 'AI Content Ethics' },
+    { id: 'payments', title: 'Payments & Refunds' },
+    { id: 'liability', title: 'Limitation of Liability' },
+    { id: 'termination', title: 'Termination' },
+  ];
+
   return (
-    <div className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-fade-in">
-      <div className="mb-12">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic mb-4">{title}</h1>
-        <p className="text-slate-500 text-sm font-bold">Last Updated: October 2024</p>
-      </div>
-      <div className="prose prose-slate prose-lg">
-        <p>
-          Welcome to IdeaForge AI. We are committed to protecting your personal information and your right to privacy. 
-          If you have any questions or concerns about this {type === 'privacy' ? 'policy' : 'agreement'}, or our practices with regards to your personal information, please contact us.
-        </p>
-        <h3>1. Information We Collect</h3>
-        <p>
-          We collect personal information that you voluntarily provide to us when you register on the website, 
-          express an interest in obtaining information about us or our products and services, when you participate 
-          in activities on the website or otherwise when you contact us.
-        </p>
-        <h3>2. {type === 'privacy' ? 'How We Use Your Information' : 'Acceptable Use'}</h3>
-        <p>
-          {type === 'privacy' 
-            ? "We use personal information collected via our website for a variety of business purposes described below. We process your personal information for these purposes in reliance on our legitimate business interests."
-            : "You agree not to use the Service to generate content that is illegal, harmful, or violates the rights of others. We reserve the right to terminate accounts that violate these terms."
-          }
-        </p>
-        <h3>3. AI Generated Content</h3>
-        <p>
-          The blueprints and strategies generated by IdeaForge AI are for informational purposes only. You retain ownership of the specific prompts you enter, 
-          while the structure of the generated blueprints is licensed to you for use in your business.
-        </p>
+    <div className="min-h-screen bg-white text-slate-900 pt-32 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-16">
+          {/* Sidebar Navigation */}
+          <aside className="lg:w-64 flex-shrink-0">
+            <div className="sticky top-40 space-y-1">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-4">Sections</h4>
+              {sections.map(s => (
+                <a
+                  key={s.id}
+                  href={`#${s.id}`}
+                  className="block px-4 py-2 text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                >
+                  {s.title}
+                </a>
+              ))}
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <div className="flex-1 max-w-3xl">
+            <div className="mb-12 border-b border-slate-100 pb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+                <Shield size={12} /> Compliance & Safety
+              </div>
+              <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase italic text-slate-900 mb-6">
+                {title}
+              </h1>
+              <p className="text-slate-500 font-bold">Last Updated: {lastUpdated}</p>
+            </div>
+
+            <div className="prose prose-slate prose-lg max-w-none">
+              <p className="lead text-xl text-slate-600 font-medium mb-12">
+                {isPrivacy
+                  ? "At LaunchPact AI, we take your data seriously. This policy outlines how we handle your information with the same precision we apply to our AI architecture."
+                  : "By accessing LaunchPact AI, you are agreeing to the following terms. These ensure a fair, secure, and high-performance environment for all founders."
+                }
+              </p>
+
+              {isPrivacy ? (
+                <>
+                  <section id="collection" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">1. Data Collection</h2>
+                    <p>We collect information necessary to provide the LaunchPact AI experience. This includes:</p>
+                    <ul>
+                      <li><b>Account Identity:</b> Name, email address, and authentication tokens via Supabase.</li>
+                      <li><b>Project Data:</b> The prompts and inputs you provide for blueprint generation.</li>
+                      <li><b>Usage Analytics:</b> Interactions with our forge engine to improve performance.</li>
+                    </ul>
+                  </section>
+
+                  <section id="usage" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">2. How We Use Data</h2>
+                    <p>Your data informs the intelligence of our platform. We use it to:</p>
+                    <ul>
+                      <li>Personalize your AI co-founder interactions.</li>
+                      <li>Maintain your project history and progress tracking.</li>
+                      <li>Detect and prevent malicious use of our processing resources.</li>
+                    </ul>
+                  </section>
+
+                  <section id="sharing" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">3. Data Sharing</h2>
+                    <p>We do not sell your data. We only share information with critical infrastructure providers (like Google Cloud and Render) necessary to run the service.</p>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section id="acceptance" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">1. Acceptance of Terms</h2>
+                    <p>LaunchPact AI provides an automated product architect service. By using this platform, you acknowledge that AI-generated content is a tool for acceleration, not a substitute for legal or financial advice.</p>
+                  </section>
+
+                  <section id="license" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">2. Service License</h2>
+                    <p>We grant you a revocable, non-exclusive license to use LaunchPact AI for building your business. You own the content of the blueprints generated for your specific prompts.</p>
+                  </section>
+
+                  <section id="ai-content" className="mb-12 scroll-mt-40">
+                    <h2 className="text-2xl font-black uppercase italic mb-6">3. AI Content Ethics</h2>
+                    <p>You agree not to use our AI engine to generate harmful, illegal, or discriminatory business strategies. Violation of this will result in immediate account termination.</p>
+                  </section>
+                </>
+              )}
+
+              <div className="mt-20 p-8 bg-slate-50 rounded-[2rem] border border-slate-100 italic text-slate-500 text-sm">
+                Need more clarification? Reach out to our legal team at <a href="mailto:legal@launchpact.ai" className="text-indigo-600 font-bold underline">legal@launchpact.ai</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

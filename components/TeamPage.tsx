@@ -38,21 +38,74 @@ const TeamPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'accepted'>('all');
     const [showPendingModal, setShowPendingModal] = useState(false);
-    const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const channelsRef = useRef<any[]>([]);
 
     useEffect(() => {
-        fetchTeamData();
+        let isMounted = true;
 
-        // Set up real-time polling (every 5 seconds)
-        pollingIntervalRef.current = setInterval(() => {
-            fetchTeamData(false); // false = don't show loading state
-        }, 5000);
+        const setupRealtimeSubscriptions = async () => {
+            if (!isMounted) return;
+            
+            fetchTeamData();
+
+            // Set up realtime subscriptions instead of polling
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user || !isMounted) return;
+
+            // Subscribe to team_members changes for all plans user is part of
+            const teamMembersChannel = supabase
+                .channel('team_members_realtime')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'team_members'
+                    },
+                    (payload: any) => {
+                        if (isMounted) {
+                            console.log('Team member change detected:', payload);
+                            fetchTeamData(false); // Refresh data silently
+                        }
+                    }
+                )
+                .subscribe();
+
+            // Subscribe to plans changes for user's created plans
+            const plansChannel = supabase
+                .channel('plans_realtime')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'plans'
+                    },
+                    (payload: any) => {
+                        if (isMounted && payload.new?.created_by === user.id) {
+                            console.log('Plan change detected:', payload);
+                            fetchTeamData(false); // Refresh data silently
+                        }
+                    }
+                )
+                .subscribe();
+
+            if (isMounted) {
+                channelsRef.current = [teamMembersChannel, plansChannel];
+            }
+        };
+
+        setupRealtimeSubscriptions();
 
         // Cleanup on unmount
         return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-            }
+            isMounted = false;
+            channelsRef.current.forEach(channel => {
+                if (channel) {
+                    supabase.removeChannel(channel);
+                }
+            });
+            channelsRef.current = [];
         };
     }, []);
 

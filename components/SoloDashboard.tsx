@@ -16,6 +16,7 @@ import {
 import { BarChart, Bar, ResponsiveContainer, Cell, XAxis, Tooltip, PieChart, Pie } from 'recharts';
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
+import NewForgeModal from './NewForgeModal';
 
 interface SoloDashboardProps {
     projects: Project[];
@@ -35,6 +36,7 @@ const ACHIEVEMENTS_LIST: Achievement[] = [
 
 const SoloDashboard: React.FC<SoloDashboardProps> = ({ projects, userStats, activePlan, onSelectProject, onNewProject, onGoToJourney }) => {
     const navigate = useNavigate();
+    const [isNewForgeModalOpen, setIsNewForgeModalOpen] = useState(false);
     const [userProfile, setUserProfile] = useState<{ id?: string; email: string; full_name?: string } | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -80,6 +82,7 @@ const SoloDashboard: React.FC<SoloDashboardProps> = ({ projects, userStats, acti
     );
 
     return (
+        <>
         <div className="p-8 pb-32 max-w-7xl mx-auto space-y-10">
             {/* Dashboard Title / Context */}
             <div className="flex items-center justify-between mb-8">
@@ -135,7 +138,7 @@ const SoloDashboard: React.FC<SoloDashboardProps> = ({ projects, userStats, acti
                             </div>
                             <h3 className="text-xl font-black text-white mb-2 uppercase italic">No Active Mandate</h3>
                             <p className="text-slate-500 text-sm max-w-xs mb-8 font-medium italic">Generate a strategic blueprint and lock an execution sequence to initialize telemetry.</p>
-                            <button onClick={() => onNewProject()} className="px-6 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+                            <button onClick={() => setIsNewForgeModalOpen(true)} className="px-6 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
                                 Initiate First Forge
                             </button>
                         </div>
@@ -253,7 +256,7 @@ const SoloDashboard: React.FC<SoloDashboardProps> = ({ projects, userStats, acti
                             ))}
 
                             <div
-                                onClick={() => onNewProject()}
+                                onClick={() => setIsNewForgeModalOpen(true)}
                                 className="bg-indigo-600/5 p-6 rounded-[2rem] border border-indigo-500/20 border-dashed hover:border-indigo-500 hover:bg-indigo-600/10 transition-all cursor-pointer flex flex-col items-center justify-center group"
                             >
                                 <div className="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
@@ -299,6 +302,13 @@ const SoloDashboard: React.FC<SoloDashboardProps> = ({ projects, userStats, acti
                 </div>
             </div>
         </div>
+
+        {/* New Forge Modal */}
+        <NewForgeModal
+            isOpen={isNewForgeModalOpen}
+            onClose={() => setIsNewForgeModalOpen(false)}
+        />
+        </>
     );
 };
 
