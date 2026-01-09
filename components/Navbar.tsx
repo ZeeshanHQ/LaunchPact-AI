@@ -46,27 +46,36 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
               {/* Desktop Navigation */}
               <div className="hidden md:flex items-center gap-1">
                 <button
+                  onClick={() => onNavigate('/platform')}
+                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                >
+                  Platform
+                </button>
+                <button
                   onClick={() => {
-                    const section = document.getElementById('features');
-                    if (section) section.scrollIntoView({ behavior: 'smooth' });
-                    else onGoHome();
+                    if (window.location.pathname === '/') {
+                      const section = document.getElementById('features');
+                      if (section) section.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      onGoHome();
+                      setTimeout(() => {
+                        const section = document.getElementById('features');
+                        if (section) section.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
                   }}
                   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                 >
                   Features
                 </button>
                 <button
-                  onClick={() => {
-                    const section = document.getElementById('pricing');
-                    if (section) section.scrollIntoView({ behavior: 'smooth' });
-                    else onGoHome();
-                  }}
+                  onClick={() => onNavigate('/pricing')}
                   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                 >
                   Pricing
                 </button>
                 <button
-                  onClick={() => onNavigate('/resources-blog')}
+                  onClick={() => onNavigate('/insights')}
                   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                 >
                   Insights

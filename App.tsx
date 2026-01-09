@@ -26,6 +26,8 @@ import TeamPage from './components/TeamPage';
 import SettingsPage from './components/SettingsPage';
 import DashboardLayout from './components/DashboardLayout';
 import TeamChatHub from './components/TeamChatHub';
+import Insights from './components/landing/Insights';
+import Platform from './components/landing/Platform';
 import { supabase } from './services/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
 import { BlueprintProvider } from './components/BlueprintContext';
@@ -464,174 +466,183 @@ const AppContent: React.FC = () => {
 
         <main className="flex-1">
           <Routes>
-          <Route path="/" element={<LandingPage onGenerate={handleGenerate} isLoading={isLoading} />} />
-          <Route path="/login" element={<LoginPage onLogin={handleLogin} onGoSignup={() => navigate('/signup')} onBack={() => navigate('/')} />} />
-          <Route path="/signup" element={<SignupPage onSignup={handleLogin} onGoLogin={() => navigate('/login')} onBack={() => navigate('/')} />} />
-          <Route path="/team-invite/:token" element={<TeamInvitePage />} />
+            <Route path="/" element={<LandingPage onGenerate={handleGenerate} isLoading={isLoading} />} />
+            <Route path="/login" element={<LoginPage onLogin={handleLogin} onGoSignup={() => navigate('/signup')} onBack={() => navigate('/')} />} />
+            <Route path="/signup" element={<SignupPage onSignup={handleLogin} onGoLogin={() => navigate('/login')} onBack={() => navigate('/')} />} />
+            <Route path="/team-invite/:token" element={<TeamInvitePage />} />
 
-          <Route path="/blueprint" element={
-            isLoggedIn && currentBlueprint ? (
-              <BlueprintView
-                blueprint={currentBlueprint}
-                onSave={handleSaveProject}
-                isLoggedIn={isLoggedIn}
-                onStartGuidedMode={() => navigate('/planner')}
-                onUpdate={handleUpdateCurrentBlueprint}
-                onFeedback={handleFeedback}
-              />
-            ) : <Navigate to="/" />
-          } />
-
-          <Route path="/project-details" element={
-            isLoggedIn && currentBlueprint ? (
-              <BlueprintView
-                blueprint={currentBlueprint}
-                onSave={handleSaveProject}
-                isLoggedIn={isLoggedIn}
-                onStartGuidedMode={() => navigate('/planner')}
-                onUpdate={handleUpdateCurrentBlueprint}
-                onFeedback={handleFeedback}
-              />
-            ) : <Navigate to="/" />
-          } />
-
-          <Route path="/planner" element={
-            isLoggedIn && currentBlueprint ? (
-              <LaunchPlanner
-                blueprint={currentBlueprint}
-                onLockPlan={handleLockPlan}
-                onExit={() => navigate('/blueprint')}
-              />
-            ) : <Navigate to="/" />
-          } />
-
-          {/* Internal Dashboard Routes */}
-          <Route element={<DashboardLayout activePlan={activePlan} />}>
-            <Route path="/dashboard" element={
-              isLoggedIn ? (
-                activePlan?.teamSetup?.setupType === 'solo' ? (
-                  <SoloDashboard
-                    projects={projects}
-                    userStats={userStats}
-                    activePlan={activePlan}
-                    onSelectProject={handleSelectProject}
-                    onNewProject={handleNewFromTemplate}
-                    onGoToJourney={() => navigate('/daily-tasks')}
-                  />
-                ) : (
-                  // If user has team plan, redirect to team dashboard
-                  <Navigate to="/team" replace />
-                )
+            <Route path="/blueprint" element={
+              isLoggedIn && currentBlueprint ? (
+                <BlueprintView
+                  blueprint={currentBlueprint}
+                  onSave={handleSaveProject}
+                  isLoggedIn={isLoggedIn}
+                  onStartGuidedMode={() => navigate('/planner')}
+                  onUpdate={handleUpdateCurrentBlueprint}
+                  onFeedback={handleFeedback}
+                />
               ) : <Navigate to="/" />
             } />
 
-            <Route path="/daily-tasks" element={
-              isLoggedIn && activePlan ? (
-                <DailyTaskEngine
-                  plan={activePlan}
-                  userStats={userStats}
-                  onUpdateXP={handleUpdateXP}
-                  onSidebarToggle={setIsCoFounderOpen}
+            <Route path="/project-details" element={
+              isLoggedIn && currentBlueprint ? (
+                <BlueprintView
+                  blueprint={currentBlueprint}
+                  onSave={handleSaveProject}
+                  isLoggedIn={isLoggedIn}
+                  onStartGuidedMode={() => navigate('/planner')}
+                  onUpdate={handleUpdateCurrentBlueprint}
+                  onFeedback={handleFeedback}
                 />
-              ) : <Navigate to={isLoggedIn ? "/dashboard" : "/"} />
+              ) : <Navigate to="/" />
             } />
 
-            <Route path="/mission" element={isLoggedIn ? <MissionPage plan={activePlan} userStats={userStats} /> : <Navigate to="/" />} />
-            <Route path="/team" element={isLoggedIn ? <TeamPage /> : <Navigate to="/" />} />
-            <Route path="/settings" element={isLoggedIn ? <SettingsPage /> : <Navigate to="/" />} />
-            <Route path="/team-review/:planId" element={<TeamReviewDashboard />} />
-            <Route path="/planner/:planId" element={<ResumePlanner />} />
-            <Route path="/team-chat" element={<TeamChatHub />} />
-            <Route path="/team-chat/:planId" element={<TeamChatHub />} />
-          </Route>
-        </Routes>
-      </main>
+            <Route path="/planner" element={
+              isLoggedIn && currentBlueprint ? (
+                <LaunchPlanner
+                  blueprint={currentBlueprint}
+                  onLockPlan={handleLockPlan}
+                  onExit={() => navigate('/blueprint')}
+                />
+              ) : <Navigate to="/" />
+            } />
 
-      {showChat && (
-        <ForgeAssistant
-          blueprint={currentBlueprint}
-          currentView={location.pathname === '/' ? 'landing' : location.pathname.substring(1)}
-          isFullPage={location.pathname === '/chat'}
-          isShifted={isCoFounderOpen && location.pathname === '/daily-tasks'}
-          onExpand={() => navigate('/chat')}
-          onCloseFullPage={() => navigate(-1)}
-        />
-      )}
+            {/* Internal Dashboard Routes */}
+            <Route element={<DashboardLayout activePlan={activePlan} />}>
+              <Route path="/dashboard" element={
+                isLoggedIn ? (
+                  activePlan?.teamSetup?.setupType === 'solo' ? (
+                    <SoloDashboard
+                      projects={projects}
+                      userStats={userStats}
+                      activePlan={activePlan}
+                      onSelectProject={handleSelectProject}
+                      onNewProject={handleNewFromTemplate}
+                      onGoToJourney={() => navigate('/daily-tasks')}
+                    />
+                  ) : (
+                    // If user has team plan, redirect to team dashboard
+                    <Navigate to="/team" replace />
+                  )
+                ) : <Navigate to="/" />
+              } />
 
-
-      {showFooter && (
-        <footer className="bg-[#0b0f19] text-slate-300 py-20 px-6 border-t border-slate-800">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
-
-              {/* Brand Column */}
-              <div className="lg:col-span-4 space-y-6">
-                <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleViewChange('landing')}>
-                  <div className="bg-gradient-to-tr from-indigo-600 to-purple-600 p-2 rounded-xl">
-                    <Sparkles size={20} className="text-white" />
-                  </div>
-                  <span className="font-bold text-2xl text-white tracking-tight">LaunchPact<span className="text-indigo-500"> AI</span></span>
-                </div>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-sm font-medium">
-                  The world's most advanced AI product architect. Transform raw thoughts into execution-ready business blueprints in seconds.
-                </p>
-                <div className="flex gap-4 pt-4">
-                  <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Twitter size={18} /></a>
-                  <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Github size={18} /></a>
-                  <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Linkedin size={18} /></a>
-                </div>
-              </div>
-
-              {/* Links Columns */}
-              <div className="lg:col-span-2 space-y-6">
-                <h4 className="text-white font-bold text-sm uppercase tracking-widest">Platform</h4>
-                <ul className="space-y-4 text-sm font-medium">
-                  <li><button onClick={() => handleViewChange('/')} className="hover:text-white transition-colors">Generator</button></li>
-                  <li><button onClick={() => handleViewChange('/dashboard')} className="hover:text-white transition-colors">Templates</button></li>
-                  <li><button onClick={() => handleViewChange('/pricing')} className="hover:text-white transition-colors">Pricing</button></li>
-                  <li><button onClick={() => handleViewChange('/enterprise')} className="hover:text-white transition-colors">Enterprise</button></li>
-                </ul>
-              </div>
-
-              <div className="lg:col-span-2 space-y-6">
-                <h4 className="text-white font-bold text-sm uppercase tracking-widest">Resources</h4>
-                <ul className="space-y-4 text-sm font-medium">
-                  <li><button onClick={() => handleViewChange('/resources-blog')} className="hover:text-white transition-colors">Blog</button></li>
-                  <li><button onClick={() => handleViewChange('/resources-case-studies')} className="hover:text-white transition-colors">Case Studies</button></li>
-                  <li><button onClick={() => handleViewChange('/resources-guide')} className="hover:text-white transition-colors">Founder's Guide</button></li>
-                  <li><button onClick={() => handleViewChange('/resources-help')} className="hover:text-white transition-colors">Help Center</button></li>
-                </ul>
-              </div>
-
-              {/* Newsletter Column */}
-              <div className="lg:col-span-4 space-y-6">
-                <h4 className="text-white font-bold text-sm uppercase tracking-widest">Stay Ahead</h4>
-                <p className="text-slate-400 text-sm">Get the latest AI product trends delivered to your inbox weekly.</p>
-                <form className="flex gap-2">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+              <Route path="/daily-tasks" element={
+                isLoggedIn && activePlan ? (
+                  <DailyTaskEngine
+                    plan={activePlan}
+                    userStats={userStats}
+                    onUpdateXP={handleUpdateXP}
+                    onSidebarToggle={setIsCoFounderOpen}
                   />
-                  <button className="bg-white text-slate-900 px-4 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">
-                    <ArrowRight size={18} />
-                  </button>
-                </form>
+                ) : <Navigate to={isLoggedIn ? "/dashboard" : "/"} />
+              } />
+
+              <Route path="/mission" element={isLoggedIn ? <MissionPage plan={activePlan} userStats={userStats} /> : <Navigate to="/" />} />
+              <Route path="/team" element={isLoggedIn ? <TeamPage /> : <Navigate to="/" />} />
+              <Route path="/settings" element={isLoggedIn ? <SettingsPage /> : <Navigate to="/" />} />
+              <Route path="/team-review/:planId" element={<TeamReviewDashboard />} />
+              <Route path="/planner/:planId" element={<ResumePlanner />} />
+              <Route path="/team-chat" element={<TeamChatHub />} />
+              <Route path="/team-chat/:planId" element={<TeamChatHub />} />
+            </Route>
+
+            {/* New Public Pages */}
+            <Route path="/platform" element={<Platform />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/pricing" element={<PricingPage onContactSales={() => navigate('/enterprise')} />} />
+            <Route path="/enterprise" element={<EnterprisePage />} />
+            <Route path="/resources-blog" element={<ResourcePage type="blog" />} />
+            <Route path="/legal-privacy" element={<LegalPage type="privacy" />} />
+            <Route path="/legal-terms" element={<LegalPage type="terms" />} />
+          </Routes>
+        </main>
+
+        {showChat && (
+          <ForgeAssistant
+            blueprint={currentBlueprint}
+            currentView={location.pathname === '/' ? 'landing' : location.pathname.substring(1)}
+            isFullPage={location.pathname === '/chat'}
+            isShifted={isCoFounderOpen && location.pathname === '/daily-tasks'}
+            onExpand={() => navigate('/chat')}
+            onCloseFullPage={() => navigate(-1)}
+          />
+        )}
+
+
+        {showFooter && (
+          <footer className="bg-[#0b0f19] text-slate-300 py-20 px-6 border-t border-slate-800">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
+
+                {/* Brand Column */}
+                <div className="lg:col-span-4 space-y-6">
+                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleViewChange('landing')}>
+                    <div className="bg-gradient-to-tr from-indigo-600 to-purple-600 p-2 rounded-xl">
+                      <Sparkles size={20} className="text-white" />
+                    </div>
+                    <span className="font-bold text-2xl text-white tracking-tight">LaunchPact<span className="text-indigo-500"> AI</span></span>
+                  </div>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-sm font-medium">
+                    The world's most advanced AI product architect. Transform raw thoughts into execution-ready business blueprints in seconds.
+                  </p>
+                  <div className="flex gap-4 pt-4">
+                    <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Twitter size={18} /></a>
+                    <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Github size={18} /></a>
+                    <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all"><Linkedin size={18} /></a>
+                  </div>
+                </div>
+
+                {/* Links Columns */}
+                <div className="lg:col-span-2 space-y-6">
+                  <h4 className="text-white font-bold text-sm uppercase tracking-widest">Platform</h4>
+                  <ul className="space-y-4 text-sm font-medium">
+                    <li><button onClick={() => handleViewChange('/')} className="hover:text-white transition-colors">Neural Forge</button></li>
+                    <li><button onClick={() => handleViewChange('/platform')} className="hover:text-white transition-colors">Core Engine</button></li>
+                    <li><button onClick={() => handleViewChange('/pricing')} className="hover:text-white transition-colors">Pricing</button></li>
+                    <li><button onClick={() => handleViewChange('/enterprise')} className="hover:text-white transition-colors">Enterprise</button></li>
+                  </ul>
+                </div>
+
+                <div className="lg:col-span-2 space-y-6">
+                  <h4 className="text-white font-bold text-sm uppercase tracking-widest">Resources</h4>
+                  <ul className="space-y-4 text-sm font-medium">
+                    <li><button onClick={() => handleViewChange('/insights')} className="hover:text-white transition-colors">Founder Insights</button></li>
+                    <li><button onClick={() => handleViewChange('/resources-blog')} className="hover:text-white transition-colors">Success Protocols</button></li>
+                    <li><button onClick={() => handleViewChange('/enterprise')} className="hover:text-white transition-colors">Founder's Guide</button></li>
+                    <li><button onClick={() => handleViewChange('/legal-terms')} className="hover:text-white transition-colors">Support Center</button></li>
+                  </ul>
+                </div>
+
+                {/* Newsletter Column */}
+                <div className="lg:col-span-4 space-y-6">
+                  <h4 className="text-white font-bold text-sm uppercase tracking-widest">Stay Ahead</h4>
+                  <p className="text-slate-400 text-sm">Get the latest elite venture intelligence delivered to your inbox.</p>
+                  <form className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="Initialize newsletter..."
+                      className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+                    />
+                    <button className="bg-white text-slate-900 px-4 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">
+                      <ArrowRight size={18} />
+                    </button>
+                  </form>
+                </div>
+
               </div>
 
-            </div>
-
-            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <p>© 2024 LaunchPact AI Inc. All rights reserved.</p>
-              <div className="flex gap-8">
-                <button onClick={() => handleViewChange('/legal-privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
-                <button onClick={() => handleViewChange('/legal-terms')} className="hover:text-white transition-colors">Terms of Service</button>
-                <button className="hover:text-white transition-colors">Cookie Settings</button>
+              <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <p>© 2026 LaunchPact AI Inc. All rights reserved.</p>
+                <div className="flex gap-8">
+                  <button onClick={() => handleViewChange('/legal-privacy')} className="hover:text-white transition-colors">Privacy Protocol</button>
+                  <button onClick={() => handleViewChange('/legal-terms')} className="hover:text-white transition-colors">Terms of Service</button>
+                  <button className="hover:text-white transition-colors">Cookie Ops</button>
+                </div>
               </div>
             </div>
-          </div>
-        </footer>
-      )}
+          </footer>
+        )}
       </div>
     </BlueprintProvider>
   );
