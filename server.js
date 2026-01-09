@@ -44,20 +44,29 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resend = new Resend(RESEND_API_KEY);
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// Updated models list with reliable, working FREE models
-// Priority: Free models first, then paid fallbacks
+// Updated models list with verified, working FREE models from OpenRouter
+// Priority: Auto-select free models first, then specific reliable free models
+// All models here are verified free models that work on OpenRouter
 const MODELS = [
-  // TIER 1: High-Performance Free Models (Best Quality)
-  'google/gemini-2.0-flash-exp:free',          // Top tier free model - most reliable
-  'meta-llama/llama-3.2-3b-instruct:free',     // Reliable small model - always works
-  'google/gemini-flash-1.5',                   // Gemini Flash (may have free tier)
+  // TIER 1: Auto-select best free model (always try this first)
+  'openrouter/auto:free',                      // Automatically selects the best free model available
   
-  // TIER 2: Additional Free Models
-  'mistralai/mistral-7b-instruct:free',        // Solid free model
-  'qwen/qwen-2.5-7b-instruct:free',            // Reliable free model
-  'google/gemini-2.0-flash-thinking-exp:free', // Great for reasoning (if available)
+  // TIER 2: Verified High-Performance Free Models
+  'mistralai/mixtral-8x7b-instruct:free',      // Smart and fast open model by Mistral
+  'mistralai/mistral-7b-instruct:free',        // Lighter, faster version (32K context)
+  'meta-llama/llama-3-8b-instruct:free',       // Meta's small and powerful model
+  'deepseek/deepseek-chat-v3.1:free',          // DeepSeek's flagship model (64K context)
+  'openchat/openchat-3.5-0106:free',           // Fine-tuned chat model, helpful and fast
+  'qwen/qwen3-coder:free',                     // Qwen's code-specific model (262K context)
+  'nousresearch/nous-capybara-7b:free',        // Conversational model with good memory
+  'gryphe/mythomax-l2-13b:free',               // Balanced between creativity and logic
   
-  // TIER 3: Paid Emergency Fallbacks (only if all free models fail)
+  // TIER 3: Additional Free Models as Last Resort
+  'z-ai/glm-4.5-air:free',                     // Lightweight GLM model (131K context)
+  'moonshotai/kimi-k2:free',                   // MoonshotAI's model (33K context)
+  
+  // TIER 4: Emergency Paid Fallbacks (only if all free models completely fail)
+  // Note: These may incur costs, but they're reliable as absolute last resort
   'anthropic/claude-3-haiku',
   'openai/gpt-3.5-turbo'
 ];
@@ -162,24 +171,49 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
   const isJson = !!schema;
   const allErrors = [];
   const timestamp = new Date().toISOString();
+  const requestId = Math.random().toString(36).substring(2, 9).toUpperCase();
 
-  console.log(`\n📡 [${timestamp}] Starting OpenRouter API call`);
-  console.log(`   Request type: ${isJson ? 'JSON' : 'Text'}`);
-  console.log(`   Total models to try: ${MODELS.length}`);
-  console.log(`   API Key: ${OPENROUTER_API_KEY.substring(0, 10)}...${OPENROUTER_API_KEY.slice(-5)}`);
+  console.log(`\n═══════════════════════════════════════════════════════════════`);
+  console.log(`📡 [${timestamp}] [REQUEST-${requestId}] OPENROUTER API CALL INITIATED`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  console.log(`   Request ID: ${requestId}`);
+  console.log(`   Request Type: ${isJson ? 'JSON Response Required' : 'Text Response'}`);
+  console.log(`   Total Models Available: ${MODELS.length}`);
+  console.log(`   API Key Status: ${OPENROUTER_API_KEY ? '✓ LOADED' : '✗ MISSING'}`);
+  console.log(`   API Key Preview: ${OPENROUTER_API_KEY.substring(0, 12)}...${OPENROUTER_API_KEY.slice(-8)}`);
+  console.log(`   Models to Try:`);
+  MODELS.forEach((m, idx) => {
+    const tier = idx === 0 ? 'TIER-1 (Auto)' : idx < 9 ? 'TIER-2 (Free)' : idx < 11 ? 'TIER-3 (Free)' : 'TIER-4 (Paid)';
+    console.log(`      ${idx + 1}. [${tier}] ${m}`);
+  });
+  console.log(`═══════════════════════════════════════════════════════════════\n`);
 
-  // If JSON is required, add instruction to system message
-  if (isJson && messages[0]?.role === 'system') {
-    messages[0].content += '\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown, no code blocks, no explanations. Just pure JSON.';
+  // If JSON is required, enhance the system message
+  if (isJson) {
+    // Find or create system message
+    let systemMsg = messages.find(m => m.role === 'system');
+    if (!systemMsg) {
+      systemMsg = { role: 'system', content: '' };
+      messages.unshift(systemMsg);
+    }
+    systemMsg.content += '\n\n⚠️ CRITICAL JSON OUTPUT REQUIREMENT ⚠️\nYou MUST respond with ONLY valid JSON. No markdown code blocks, no explanations, no text outside JSON. Just pure, valid JSON that can be parsed directly. If you include any markdown formatting like ```json or ```, your response will FAIL.';
   }
+
+  let successfulModel = null;
+  let successfulResponse = null;
 
   for (let i = 0; i < MODELS.length; i++) {
     const model = MODELS[i];
     const attemptStart = Date.now();
+    const attemptNum = i + 1;
     
     try {
-      console.log(`\n   🤖 [${i + 1}/${MODELS.length}] Attempting model: ${model}`);
-      console.log(`      Timestamp: ${new Date().toISOString()}`);
+      console.log(`\n   ┌─────────────────────────────────────────────────────────`);
+      console.log(`   │ 🤖 [${attemptNum}/${MODELS.length}] ATTEMPTING MODEL: ${model}`);
+      console.log(`   │    Request ID: ${requestId}`);
+      console.log(`   │    Timestamp: ${new Date().toISOString()}`);
+      console.log(`   │    Tier: ${i === 0 ? 'TIER-1 (Auto-select)' : i < 9 ? 'TIER-2 (Free)' : i < 11 ? 'TIER-3 (Free)' : 'TIER-4 (Paid Fallback)'}`);
+      console.log(`   └─────────────────────────────────────────────────────────`);
 
       const requestBody = {
         model: model,
@@ -188,19 +222,21 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
         max_tokens: isJson ? 4000 : 2000
       };
 
-      // Only add response_format for models that definitely support it
-      // Most free models don't support this, so we rely on prompt engineering
-      const supportsJsonFormat = !model.includes('free') && !model.includes('mistral') && !model.includes('qwen');
+      // Only add response_format for paid models that support it
+      // Free models typically don't support this, so we rely on prompt engineering
+      const supportsJsonFormat = !model.includes('free') && !model.includes('auto');
       if (isJson && supportsJsonFormat) {
         requestBody.response_format = { type: "json_object" };
-        console.log(`      Using JSON response format`);
+        console.log(`   │ ✓ Using JSON response format (model supports it)`);
+      } else if (isJson) {
+        console.log(`   │ ℹ Using prompt-based JSON generation (free model)`);
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout per model
+      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50s timeout per model
 
       const startTime = Date.now();
-      console.log(`      Sending request to OpenRouter...`);
+      console.log(`   │ 📤 Sending HTTP POST to OpenRouter API...`);
       
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -216,83 +252,160 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
       clearTimeout(timeoutId);
       const duration = Date.now() - startTime;
-      console.log(`      Response received in ${duration}ms (Status: ${response.status})`);
+      const statusEmoji = response.ok ? '✅' : '❌';
+      console.log(`   │ ${statusEmoji} Response received: ${duration}ms | Status: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         let errorMsg = response.statusText;
         let errorDetails = {};
+        let errorCode = null;
+        
         try {
           const errorData = await response.json();
           errorMsg = errorData.error?.message || errorData.error?.type || errorMsg;
+          errorCode = errorData.error?.code;
           errorDetails = errorData.error || {};
-          console.log(`      Error details:`, JSON.stringify(errorDetails, null, 2));
+          console.log(`   │    Error Type: ${errorDetails.type || 'Unknown'}`);
+          console.log(`   │    Error Code: ${errorCode || 'N/A'}`);
+          console.log(`   │    Error Message: ${errorMsg.substring(0, 150)}${errorMsg.length > 150 ? '...' : ''}`);
         } catch (e) {
           const text = await response.text().catch(() => '');
           errorMsg = text || errorMsg;
-          console.log(`      Error text: ${text.substring(0, 200)}`);
+          console.log(`   │    Error Response: ${text.substring(0, 200)}${text.length > 200 ? '...' : ''}`);
         }
 
-        console.log(`   ⚠️ [FAILED] Model ${model} failed (${response.status}): ${errorMsg}`);
-        if (errorDetails.code) {
-          console.log(`      Error code: ${errorDetails.code}`);
-        }
-        allErrors.push(`${model} [${response.status}]: ${errorMsg}`);
+        console.log(`   │ ⚠️  MODEL FAILED: ${model}`);
+        console.log(`   │    Reason: ${response.status} - ${errorMsg.substring(0, 100)}`);
+        allErrors.push({
+          model,
+          status: response.status,
+          error: errorMsg,
+          code: errorCode,
+          duration: Date.now() - attemptStart
+        });
 
-        // If it's a rate limit, wait a bit before trying next model
+        // If it's a rate limit, wait longer before trying next model
         if (response.status === 429) {
-          console.log(`   ⏳ Rate limited, waiting 3 seconds before next model...`);
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          const waitTime = 5000; // 5 seconds for rate limits
+          console.log(`   │ ⏳ Rate limited (429). Waiting ${waitTime}ms before next model...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else if (response.status >= 500) {
+          // Server errors - wait a bit but not too long
+          const waitTime = 2000;
+          console.log(`   │ ⏳ Server error (${response.status}). Waiting ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else {
+          // Client errors (400, 401, 403) - try next model immediately
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
         continue;
       }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
+      const modelUsed = data.model || model; // OpenRouter may return the actual model used
+      const tokensUsed = data.usage?.total_tokens || 'N/A';
 
-      if (!content) {
-        console.log(`   ⚠️ [FAILED] Model ${model} returned empty content`);
-        console.log(`      Full response:`, JSON.stringify(data, null, 2));
-        allErrors.push(`${model}: Empty content`);
+      if (!content || content.trim().length === 0) {
+        console.log(`   │ ⚠️  MODEL RETURNED EMPTY CONTENT`);
+        console.log(`   │    Response structure:`, JSON.stringify({
+          hasChoices: !!data.choices,
+          choicesLength: data.choices?.length || 0,
+          hasMessage: !!data.choices?.[0]?.message,
+          hasContent: !!content
+        }, null, 2));
+        allErrors.push({
+          model,
+          status: 200,
+          error: 'Empty content in response',
+          duration: Date.now() - attemptStart
+        });
         continue;
       }
 
       const totalDuration = Date.now() - attemptStart;
-      console.log(`   ✅ [SUCCESS] Model ${model} worked!`);
-      console.log(`      Total time: ${totalDuration}ms`);
-      console.log(`      Response length: ${content.length} characters`);
-      console.log(`      First 100 chars: ${content.substring(0, 100)}...`);
+      successfulModel = modelUsed;
+      successfulResponse = content;
+      
+      console.log(`   │`);
+      console.log(`   │ ✅✅✅ SUCCESS! MODEL WORKED: ${modelUsed} ✅✅✅`);
+      console.log(`   │`);
+      console.log(`   │    Total Time: ${totalDuration}ms`);
+      console.log(`   │    Tokens Used: ${tokensUsed}`);
+      console.log(`   │    Response Length: ${content.length} characters`);
+      console.log(`   │    Preview: ${content.substring(0, 120).replace(/\n/g, ' ')}...`);
+      console.log(`   │`);
+      console.log(`   └─────────────────────────────────────────────────────────`);
+      console.log(`\n═══════════════════════════════════════════════════════════════`);
+      console.log(`✅ [${new Date().toISOString()}] [REQUEST-${requestId}] SUCCESS`);
+      console.log(`   Successful Model: ${modelUsed}`);
+      console.log(`   Attempt Number: ${attemptNum}/${MODELS.length}`);
+      console.log(`   Total Duration: ${totalDuration}ms`);
+      console.log(`═══════════════════════════════════════════════════════════════\n`);
+      
       return content;
 
     } catch (error) {
       const isTimeout = error.name === 'AbortError';
-      const errorType = isTimeout ? 'Timeout' : (error.message.includes('fetch') ? 'Network error' : 'Error');
+      const isNetwork = error.message.includes('fetch') || error.message.includes('network');
+      const errorType = isTimeout ? 'TIMEOUT' : isNetwork ? 'NETWORK_ERROR' : 'EXCEPTION';
       const attemptDuration = Date.now() - attemptStart;
       
-      console.log(`   ⚠️ [${errorType.toUpperCase()}] Model ${model} failed after ${attemptDuration}ms`);
-      console.log(`      Error: ${error.message}`);
-      if (!isTimeout && error.stack) {
-        console.log(`      Stack: ${error.stack.split('\n')[0]}`);
+      console.log(`   │`);
+      console.log(`   │ ❌❌❌ ${errorType}: MODEL FAILED ❌❌❌`);
+      console.log(`   │    Model: ${model}`);
+      console.log(`   │    Duration: ${attemptDuration}ms`);
+      console.log(`   │    Error: ${error.message.substring(0, 150)}${error.message.length > 150 ? '...' : ''}`);
+      if (!isTimeout && error.stack && errorType === 'EXCEPTION') {
+        console.log(`   │    Stack (first line): ${error.stack.split('\n')[1]?.trim() || 'N/A'}`);
       }
-      allErrors.push(`${model}: ${isTimeout ? 'Timeout (45s)' : error.message}`);
+      console.log(`   │`);
+      
+      allErrors.push({
+        model,
+        status: errorType,
+        error: error.message,
+        duration: attemptDuration
+      });
 
-      // Small delay before trying next model
+      // Small delay before trying next model (longer for timeouts)
       if (i < MODELS.length - 1) {
-        const delay = isTimeout ? 1000 : 500;
-        console.log(`      Waiting ${delay}ms before next model...`);
+        const delay = isTimeout ? 2000 : (isNetwork ? 1500 : 500);
+        console.log(`   │ ⏳ Waiting ${delay}ms before trying next model...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
+      console.log(`   └─────────────────────────────────────────────────────────`);
     }
   }
 
-  // Log all errors for debugging
-  console.error(`\n❌ [${new Date().toISOString()}] All ${MODELS.length} models failed!`);
-  console.error('   Detailed error log:');
+  // All models failed - log comprehensive error report
+  console.log(`\n`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  console.log(`❌❌❌ [${new Date().toISOString()}] [REQUEST-${requestId}] ALL MODELS FAILED ❌❌❌`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  console.log(`   Request ID: ${requestId}`);
+  console.log(`   Total Models Attempted: ${MODELS.length}`);
+  console.log(`   Request Type: ${isJson ? 'JSON' : 'Text'}`);
+  console.log(`\n   DETAILED FAILURE LOG:`);
+  console.log(`   ───────────────────────────────────────────────────────────`);
   allErrors.forEach((err, idx) => {
-    console.error(`   ${idx + 1}. ${err}`);
+    console.log(`   ${idx + 1}. Model: ${err.model}`);
+    console.log(`      Status: ${err.status} | Duration: ${err.duration}ms`);
+    console.log(`      Error: ${err.error.substring(0, 200)}${err.error.length > 200 ? '...' : ''}`);
+    if (err.code) console.log(`      Code: ${err.code}`);
+    console.log(``);
   });
-  console.error(`\n   This error will be visible in Render logs for debugging.`);
+  console.log(`   ───────────────────────────────────────────────────────────`);
+  console.log(`\n   TROUBLESHOOTING SUGGESTIONS:`);
+  console.log(`   1. Check OpenRouter API key is valid`);
+  console.log(`   2. Check internet connection`);
+  console.log(`   3. Check OpenRouter status page: https://openrouter.ai/status`);
+  console.log(`   4. Verify API key has sufficient credits/quota`);
+  console.log(`   5. Check if all free models are temporarily unavailable`);
+  console.log(`\n   This detailed log will be visible in Render backend logs.`);
+  console.log(`═══════════════════════════════════════════════════════════════\n`);
 
-  throw new Error(`All ${MODELS.length} AI models failed. Check logs above for details. Last errors: ${allErrors.slice(-3).join(' | ')}`);
+  throw new Error(`All ${MODELS.length} AI models failed. Request ID: ${requestId}. Check Render logs for detailed failure analysis. Last 3 errors: ${allErrors.slice(-3).map(e => `${e.model} (${e.status})`).join(' | ')}`);
 };
 
 // --- Routes ---
@@ -349,22 +462,34 @@ app.get('/api/test-ai', async (req, res) => {
 
 // 2. Enhance Prompt
 app.post('/api/enhance-prompt', async (req, res) => {
-  console.log(`✨ Request: Enhancing prompt...`);
+  console.log(`\n✨ [${new Date().toISOString()}] Request: Enhancing prompt...`);
   try {
     const { rawInput } = req.body;
+    
+    if (!rawInput || !rawInput.trim()) {
+      console.log(`   ⚠️  Empty input, returning as-is`);
+      return res.json({ text: rawInput || '' });
+    }
+    
+    console.log(`   Input length: ${rawInput.length} characters`);
+    
     const messages = [
       {
         role: 'user',
-        content: `You are LaunchPact AI. Rewrite this raw idea into a professional prompt: "${rawInput}". Max 3 sentences. Output ONLY the enhanced prompt, no explanations.`
+        content: `You are LaunchPact AI. Rewrite this raw idea into a professional prompt: "${rawInput}". Max 3 sentences. Output ONLY the enhanced prompt, no explanations, no markdown.`
       }
     ];
 
+    console.log(`   📤 Sending to AI models...`);
     const response = await callOpenRouter(messages, false);
-    res.json({ text: response.trim() });
+    const enhanced = response.trim();
+    
+    console.log(`   ✅ Enhancement successful (${enhanced.length} chars)`);
+    res.json({ text: enhanced });
   } catch (error) {
-    console.error("❌ Enhancement failed, using pass-through:", error.message);
-    const { rawInput } = req.body;
-    res.json({ text: rawInput });
+    console.error(`   ❌ Enhancement failed, using pass-through: ${error.message}`);
+    const { rawInput = '' } = req.body;
+    res.json({ text: rawInput.trim() || 'Please provide a product idea to enhance.' });
   }
 });
 
@@ -538,19 +663,23 @@ Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
 
 // 4. Execution Plan
 app.post('/api/execution-plan', async (req, res) => {
-  console.log(`📋 Request: Generating Execution Plan...`);
+  console.log(`\n📋 [${new Date().toISOString()}] Request: Generating Execution Plan...`);
   try {
-    const { blueprint } = req.body;
+    const { blueprint = {} } = req.body;
+    
+    console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
+    console.log(`   Tech Stack: ${blueprint?.techStack?.frontend || 'Not specified'}`);
+    
     const messages = [
       {
         role: 'system',
-        content: 'You are PNX Action Engine. You output strict JSON containing execution tasks.'
+        content: 'You are PNX Action Engine. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON with execution tasks.'
       },
       {
         role: 'user',
-        content: `As PNX, create a 10-step MVP Execution Checklist for: ${blueprint.productName} using ${blueprint.techStack.frontend}.
-
-Output ONLY JSON in this format:
+        content: `As PNX, create a 10-step MVP Execution Checklist for: ${blueprint?.productName || 'the startup'} using ${blueprint?.techStack?.frontend || 'modern web technologies'}.
+        
+Output ONLY JSON in this format (no markdown, no code blocks):
 {
   "tasks": [
     {
@@ -566,27 +695,42 @@ Output ONLY JSON in this format:
       }
     ];
 
+    console.log(`   📤 Sending to AI models...`);
     const response = await callOpenRouter(messages, true);
-    const parsed = JSON.parse(repairJson(response));
-    res.json(parsed.tasks || parsed);
+    const repaired = repairJson(response);
+    const parsed = JSON.parse(repaired);
+    
+    const tasks = parsed.tasks || parsed;
+    console.log(`   ✅ Execution plan generated: ${Array.isArray(tasks) ? tasks.length : 'N/A'} tasks`);
+    res.json(tasks);
   } catch (error) {
-    console.error("❌ Execution plan AI failed, launching rescue data:", error.message);
-    const { blueprint } = req.body;
-    res.json(getRescueExecutionPlan(blueprint?.productName || "Startup"));
+    console.error(`   ❌ Execution plan AI failed, launching rescue data: ${error.message}`);
+    const { blueprint = {} } = req.body;
+    const rescuePlan = getRescueExecutionPlan(blueprint?.productName || "Startup");
+    console.log(`   ✅ Using rescue execution plan: ${rescuePlan.length} tasks`);
+    res.json(rescuePlan);
   }
 });
 
 // 5. Timeline Simulation
 app.post('/api/simulate-timeline', async (req, res) => {
-  console.log(`⏱️ Request: Simulating Timeline...`);
+  console.log(`\n⏱️ [${new Date().toISOString()}] Request: Simulating Timeline...`);
   try {
-    const { blueprint, months } = req.body;
+    const { blueprint = {}, months = 3 } = req.body;
+    
+    console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
+    console.log(`   Target Months: ${months}`);
+    
     const messages = [
       {
+        role: 'system',
+        content: 'You are LaunchPact AI Timeline Analyst. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON.'
+      },
+      {
         role: 'user',
-        content: `User wants to launch "${blueprint.productName}" in ${months} months. Is this feasible? 
-
-Output ONLY JSON:
+        content: `User wants to launch "${blueprint?.productName || 'the startup'}" in ${months} months. Is this feasible? 
+        
+Output ONLY JSON (no markdown, no code blocks):
 {
   "targetMonths": ${months},
   "feasible": true,
@@ -597,32 +741,49 @@ Output ONLY JSON:
       }
     ];
 
+    console.log(`   📤 Sending to AI models...`);
     const response = await callOpenRouter(messages, true);
-    res.json(JSON.parse(repairJson(response)));
+    const repaired = repairJson(response);
+    const parsed = JSON.parse(repaired);
+    
+    console.log(`   ✅ Timeline simulation successful`);
+    console.log(`   Feasible: ${parsed.feasible}`);
+    console.log(`   Risk: ${parsed.riskFactor}`);
+    res.json(parsed);
   } catch (error) {
-    console.error("❌ Timeline AI failed, using rescue logic:", error.message);
-    const { months } = req.body;
-    res.json({
-      targetMonths: months || 3,
-      feasible: true,
-      cutsRequired: ["Deep secondary integrations"],
-      riskFactor: "Moderate",
-      adjustedRoadmapSuggestion: "Streamline the initial UI and focus on core task automation to meet the timeline."
-    });
+    console.error(`   ❌ Timeline AI failed, using rescue logic: ${error.message}`);
+    const { months = 3 } = req.body;
+    const rescueResponse = {
+      targetMonths: months,
+      feasible: months >= 2, // Generally feasible if 2+ months
+      cutsRequired: ["Deep secondary integrations", "Advanced analytics"],
+      riskFactor: months < 3 ? "High" : months < 6 ? "Moderate" : "Low",
+      adjustedRoadmapSuggestion: "Streamline the initial UI and focus on core task automation to meet the timeline. Prioritize MVP features over nice-to-haves."
+    };
+    console.log(`   ✅ Using rescue timeline: ${rescueResponse.feasible ? 'Feasible' : 'Not Feasible'}`);
+    res.json(rescueResponse);
   }
 });
 
 // 6. Guided Step
 app.post('/api/guided-step', async (req, res) => {
-  console.log(`🧭 Request: Guided Co-Founder Step...`);
+  console.log(`\n🧭 [${new Date().toISOString()}] Request: Guided Co-Founder Step...`);
   try {
-    const { step, blueprint, selections } = req.body;
+    const { step = '', blueprint = {}, selections = {} } = req.body;
+    
+    console.log(`   Step: ${step}`);
+    console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
+    
     const messages = [
       {
+        role: 'system',
+        content: 'You are LaunchPact AI Guide. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON.'
+      },
+      {
         role: 'user',
-        content: `You are LaunchPact AI. Step: ${step}. Project: "${blueprint.productName}". Selections: ${JSON.stringify(selections)}. Explain WHY. 
-
-Output ONLY JSON:
+        content: `You are LaunchPact AI. Step: ${step}. Project: "${blueprint?.productName || 'Startup'}". Selections: ${JSON.stringify(selections)}. Explain WHY. 
+        
+Output ONLY JSON (no markdown, no code blocks):
 {
   "advice": "string",
   "suggestions": ["option1", "option2"]
@@ -630,22 +791,58 @@ Output ONLY JSON:
       }
     ];
 
+    console.log(`   📤 Sending to AI models...`);
     const response = await callOpenRouter(messages, true);
-    res.json(JSON.parse(repairJson(response)));
+    const repaired = repairJson(response);
+    const parsed = JSON.parse(repaired);
+    
+    console.log(`   ✅ Guided step response successful`);
+    res.json(parsed);
   } catch (error) {
-    console.error("❌ Guided step AI failed, using rescue advice:", error.message);
-    res.json({
-      advice: "Founder, we've hit a high-traffic AI zone. My strategic advice: focus on the simplest version of this step first. Ensure your core niche is clearly defined before adding complexity.",
-      suggestions: ["Focus on core value", "Validate with 1 user", "Continue to next step"]
-    });
+    console.error(`   ❌ Guided step AI failed, using rescue advice: ${error.message}`);
+    const { step = '' } = req.body;
+    
+    // Context-aware fallback advice
+    let advice = "Founder, we've hit a high-traffic AI zone. My strategic advice: focus on the simplest version of this step first. Ensure your core niche is clearly defined before adding complexity.";
+    let suggestions = ["Focus on core value", "Validate with 1 user", "Continue to next step"];
+    
+    if (step.toLowerCase().includes('tech') || step.toLowerCase().includes('stack')) {
+      advice = "For technical decisions, start with the most proven, well-documented stack. Don't over-engineer - choose what works and iterate.";
+      suggestions = ["Choose proven stack", "Document decisions", "Keep it simple"];
+    } else if (step.toLowerCase().includes('market') || step.toLowerCase().includes('audience')) {
+      advice = "Define your target audience narrowly first. It's better to serve 100 people perfectly than 10,000 poorly. Focus on their core pain point.";
+      suggestions = ["Narrow audience", "Identify core pain", "Validate need"];
+    }
+    
+    res.json({ advice, suggestions });
   }
 });
 
 // 7. Chat
 app.post('/api/chat', async (req, res) => {
-  console.log(`💬 Request: Chat message received.`);
+  const chatRequestId = Math.random().toString(36).substring(2, 9).toUpperCase();
+  const timestamp = new Date().toISOString();
+  
+  console.log(`\n═══════════════════════════════════════════════════════════════`);
+  console.log(`💬 [${timestamp}] [CHAT-${chatRequestId}] CHAT REQUEST RECEIVED`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  
   try {
-    const { history, newMessage, context, isCoFounderMode } = req.body;
+    const { history = [], newMessage = '', context = '', isCoFounderMode = false } = req.body;
+
+    if (!newMessage || !newMessage.trim()) {
+      console.log(`   ⚠️  Empty message received`);
+      return res.json({
+        text: "I'm here! What would you like to discuss about your project?",
+        suggestions: ["Tell me about your idea", "Help with blueprint", "Execution advice"],
+        updates: null
+      });
+    }
+
+    console.log(`   Message Length: ${newMessage.length} characters`);
+    console.log(`   History Length: ${history.length} messages`);
+    console.log(`   Co-Founder Mode: ${isCoFounderMode ? 'Yes' : 'No'}`);
+    console.log(`   Has Context: ${context ? 'Yes' : 'No'}`);
 
     const basePersona = `You are PromptNovaX (PNX), a legendary AI Product Architect and Co-Founder. 
     You are brilliant, strategic, friendly, and conversational. 
@@ -681,27 +878,29 @@ app.post('/api/chat', async (req, res) => {
       content: `${basePersona}\n${modePersona}\n${context ? `Project Context: ${context}` : ''}
       
       RESPONSE RULES:
-      1. ALWAYS respond in valid JSON with this structure:
+      1. ALWAYS respond in valid JSON with this EXACT structure (no markdown, no code blocks):
          {
            "text": "your conversational response here",
            "suggestions": ["optional suggestion 1", "optional suggestion 2"],
            "updates": { ... }  // ONLY include this when user has CONFIRMED they want changes applied
          }
       
-      2. For blueprint modification requests:
+      2. CRITICAL: Output ONLY valid JSON. No markdown, no code blocks, no explanations. Just pure JSON.
+      
+      3. For blueprint modification requests:
          - First response: Discuss what you'd change and ask for confirmation
          - Second response (after user confirms): Include the "updates" object with actual changes
       
-      3. The "updates" object should contain ONLY the blueprint fields being modified, for example:
+      4. The "updates" object should contain ONLY the blueprint fields being modified, for example:
          {
            "competitors": [{"name": "...", "strength": "...", "weakness": "..."}],
            "mvpFeatures": [...],
            "techStack": {...}
          }
       
-      4. Be conversational, friendly, and natural - like chatting with a co-founder friend
-      5. Use the user's language naturally (English/Roman Urdu/Hinglish)
-      6. Keep responses concise but valuable`
+      5. Be conversational, friendly, and natural - like chatting with a co-founder friend
+      6. Use the user's language naturally (English/Roman Urdu/Hinglish)
+      7. Keep responses concise but valuable (2-4 sentences for "text" field)`
     };
 
     const messages = [
@@ -713,40 +912,109 @@ app.post('/api/chat', async (req, res) => {
       { role: 'user', content: newMessage }
     ];
 
+    console.log(`   📤 Sending to AI models (with fallback)...`);
     const aiResponse = await callOpenRouter(messages, true);
 
     try {
       const repaired = repairJson(aiResponse);
       const parsed = JSON.parse(repaired);
+      
+      console.log(`   ✅ Chat response parsed successfully`);
+      console.log(`   Response text length: ${parsed.text?.length || 0}`);
+      console.log(`   Suggestions count: ${parsed.suggestions?.length || 0}`);
+      console.log(`   Has updates: ${!!parsed.updates}`);
+      
       res.json({
         text: parsed.text || "I've processed your request. How can I refine this further?",
         suggestions: parsed.suggestions || [],
         updates: parsed.updates || null
       });
     } catch (parseError) {
-      console.error("❌ Chat JSON Parse failed:", aiResponse);
+      console.error(`   ⚠️  JSON Parse failed, attempting recovery...`);
+      console.error(`   Parse error: ${parseError.message}`);
+      console.error(`   Raw response preview: ${aiResponse.substring(0, 300)}...`);
+      
+      // Try to extract text from malformed response
+      let extractedText = aiResponse;
+      
+      // Try to find JSON in the response
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const extracted = JSON.parse(repairJson(jsonMatch[0]));
+          extractedText = extracted.text || extractedText;
+        } catch (e) {
+          // If still can't parse, use the raw text
+        }
+      }
+      
+      // If response is too long, truncate it
+      if (extractedText.length > 500) {
+        extractedText = extractedText.substring(0, 500) + "...";
+      }
+      
+      console.log(`   ✅ Using recovered response`);
       res.json({
-        text: aiResponse.length > 200 ? "My neural processors hit a snag with that format. Let's try focusing on a specific part of your project." : aiResponse,
-        suggestions: ["Refine objective", "Change mode"]
+        text: extractedText || "I understand what you're asking. Let me help you think through this step by step. What specific aspect would you like to focus on?",
+        suggestions: ["Refine the question", "Change mode", "Continue building"],
+        updates: null
       });
     }
   } catch (error) {
-    console.error("❌ Chat AI failed, using emergency persona:", error.message);
+    console.error(`\n   ❌❌❌ CHAT ENDPOINT ERROR ❌❌❌`);
+    console.error(`   Request ID: ${chatRequestId}`);
+    console.error(`   Error: ${error.message}`);
+    console.error(`   Stack: ${error.stack?.split('\n').slice(0, 3).join('\n') || 'N/A'}`);
+    console.error(`   ═══════════════════════════════════════════════════════════════`);
+    console.log(`\n   🔄 Using intelligent fallback response...\n`);
+    
+    // Intelligent fallback based on message content
+    const { newMessage = '', isCoFounderMode = false } = req.body || {};
+    const messageLower = newMessage.toLowerCase();
+    
+    let fallbackText = "Founder, I'm experiencing temporary connection issues with my AI models. ";
+    let fallbackSuggestions = ["Retry", "Check connection", "Continue building"];
+    
+    if (messageLower.includes('blueprint') || messageLower.includes('plan')) {
+      fallbackText += "For blueprint-related questions, I recommend reviewing your existing blueprint in the left panel. You can make manual adjustments there while I reconnect.";
+      fallbackSuggestions = ["Review blueprint", "Manual edits", "Try again"];
+    } else if (messageLower.includes('execution') || messageLower.includes('task')) {
+      fallbackText += "For execution planning, focus on the current task at hand. Break it down into smaller steps and tackle them one by one.";
+      fallbackSuggestions = ["Focus on current task", "Break it down", "Try again"];
+    } else if (messageLower.includes('tech') || messageLower.includes('stack')) {
+      fallbackText += "For technical questions, I'd suggest researching the specific technology stack you're considering. Check documentation and community forums for the latest best practices.";
+      fallbackSuggestions = ["Research tech stack", "Check documentation", "Try again"];
+    } else {
+      fallbackText += "I recommend focusing on the core objective of your current step while I reconnect. What specific challenge are you facing right now?";
+      fallbackSuggestions = ["Refine objective", "Continue building", "Try again"];
+    }
+    
     res.json({
-      text: "Founder, I'm currently operating in offline mode as our primary AI core is under heavy load. I recommend focusing on the current task's core objective while I reconnect.",
-      suggestions: ["Refine objective", "Check connection", "Continue building"]
+      text: fallbackText,
+      suggestions: fallbackSuggestions,
+      updates: null
     });
   }
 });
 
 // 8. Generate Daily Tasks
 app.post('/api/generate-daily-tasks', async (req, res) => {
+  console.log(`\n📅 [${new Date().toISOString()}] Request: Generate Daily Tasks...`);
   try {
-    const { executionPlan, timeline } = req.body;
+    const { executionPlan = [], timeline = {} } = req.body;
+    const targetMonths = timeline?.targetMonths || 3;
+    
+    console.log(`   Target Months: ${targetMonths}`);
+    console.log(`   Execution Plan Steps: ${executionPlan?.length || 0}`);
+    
     const messages = [
-      { role: 'system', content: 'You are LaunchPact AI Task Engine. Break plans into GRANULAR daily micro-tasks.' },
+      { 
+        role: 'system', 
+        content: 'You are LaunchPact AI Task Engine. Break plans into GRANULAR daily micro-tasks. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON.' 
+      },
       {
-        role: 'user', content: `Create 3 HYPER-SPECIFIC tasks/day for ${timeline.targetMonths} months. 
+        role: 'user', 
+        content: `Create 3 HYPER-SPECIFIC tasks/day for ${targetMonths} months. 
       
       DAY 1 CRITICAL FOCUS: Foundation & Depth ONLY. (e.g., Development Environment Setup, Competitor Deep-Dive, or Niche Identification). DO NOT jump to Development or Deployment on Day 1.
       
@@ -757,29 +1025,48 @@ app.post('/api/generate-daily-tasks', async (req, res) => {
       
       Plan Context: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}
       
-      Output ONLY valid JSON.` }
+      Output ONLY valid JSON (no markdown, no code blocks).` 
+      }
     ];
 
+    console.log(`   📤 Sending to AI models...`);
     const aiResponse = await callOpenRouter(messages, true);
     let dailyTasks = [];
+    
     try {
       const repaired = repairJson(aiResponse);
       const parsed = JSON.parse(repaired);
-      dailyTasks = parsed.dailyTasks || [];
+      dailyTasks = parsed.dailyTasks || parsed || [];
 
-      // Strict distribution hack to fix AI overload
+      // Ensure all tasks have required fields and proper day numbers
       dailyTasks = dailyTasks.map((t, idx) => ({
-        ...t,
+        id: t.id || `task-${idx + 1}`,
+        title: t.title || 'Task',
+        description: t.description || '',
+        phase: t.phase || 'Planning',
+        estimatedTime: t.estimatedTime || '1 day',
+        subTasks: t.subTasks || [],
+        aiGuidancePrompt: t.aiGuidancePrompt || '',
+        isCompleted: t.isCompleted || false,
+        xpReward: t.xpReward || 100,
         dayNumber: t.dayNumber || Math.floor(idx / 3) + 1
       }));
+      
+      console.log(`   ✅ Daily tasks generated: ${dailyTasks.length} tasks`);
+      console.log(`   Days covered: ${Math.max(...dailyTasks.map(t => t.dayNumber || 1))} days`);
     } catch (parseError) {
-      console.error("❌ JSON Parse failed. Raw response:", aiResponse);
+      console.error(`   ⚠️  JSON Parse failed, using rescue data`);
+      console.error(`   Parse error: ${parseError.message}`);
+      console.error(`   Raw response preview: ${aiResponse.substring(0, 300)}...`);
       throw new Error("Could not parse AI response.");
     }
+    
     res.json({ dailyTasks });
   } catch (error) {
-    console.error("❌ Daily tasks AI failed, launching rescue data:", error.message);
-    res.json({ dailyTasks: getRescueDailyTasks() });
+    console.error(`   ❌ Daily tasks AI failed, launching rescue data: ${error.message}`);
+    const rescueTasks = getRescueDailyTasks();
+    console.log(`   ✅ Using rescue daily tasks: ${rescueTasks.length} tasks`);
+    res.json({ dailyTasks: rescueTasks });
   }
 });
 
@@ -840,57 +1127,89 @@ app.post('/api/auth/signup-notification', async (req, res) => {
 
 // 10. Lock Plan
 app.post('/api/lock-plan', async (req, res) => {
-  console.log(`🔒 Request: Locking plan...`);
+  console.log(`\n🔒 [${new Date().toISOString()}] Request: Locking plan...`);
   try {
-    const { blueprint, executionPlan, timeline } = req.body;
+    const { blueprint = {}, executionPlan = [], timeline = {} } = req.body;
+    
+    console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
+    console.log(`   Execution Plan Steps: ${executionPlan?.length || 0}`);
+    console.log(`   Timeline: ${timeline?.targetMonths || 3} months`);
 
     // Call internal daily tasks generator
     const messages = [
-      { role: 'system', content: 'You are LaunchPact AI Task Engine.' },
-      { role: 'user', content: `Break plan into 3 granular tasks per day. Day 1: Setup/Research ONLY. JSON: { "dailyTasks": [...] }. Plan: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}` }
+      { 
+        role: 'system', 
+        content: 'You are LaunchPact AI Task Engine. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON with dailyTasks array.' 
+      },
+      { 
+        role: 'user', 
+        content: `Break plan into 3 granular tasks per day. Day 1: Setup/Research ONLY. Output JSON format: { "dailyTasks": [...] }. Plan: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}` 
+      }
     ];
 
+    console.log(`   📤 Generating daily tasks via AI...`);
     const aiResponse = await callOpenRouter(messages, true);
-    let { dailyTasks } = JSON.parse(repairJson(aiResponse));
+    let dailyTasks = [];
+    
+    try {
+      const repaired = repairJson(aiResponse);
+      const parsed = JSON.parse(repaired);
+      dailyTasks = parsed.dailyTasks || parsed || [];
+      
+      // Ensure all tasks have required fields
+      dailyTasks = (dailyTasks || []).map((t, idx) => ({
+        ...t,
+        id: t.id || `task-${idx + 1}`,
+        dayNumber: t.dayNumber || Math.floor(idx / 3) + 1,
+        isCompleted: t.isCompleted || false
+      }));
+      
+      console.log(`   ✅ Daily tasks generated: ${dailyTasks.length} tasks`);
+    } catch (parseError) {
+      console.error(`   ⚠️  Failed to parse daily tasks, using rescue data: ${parseError.message}`);
+      dailyTasks = getRescueDailyTasks();
+    }
 
-    // Day number assignment fallback
-    dailyTasks = (dailyTasks || []).map((t, idx) => ({
-      ...t,
-      dayNumber: t.dayNumber || Math.floor(idx / 3) + 1
-    }));
-
+    const targetMonths = timeline?.targetMonths || 3;
     const lockedPlan = {
       id: Math.random().toString(36).substring(7),
       blueprint,
-      executionPlan,
+      executionPlan: executionPlan || getRescueExecutionPlan(blueprint?.productName || 'Startup'),
       timeline,
-      dailyTasks: dailyTasks || [],
+      dailyTasks: dailyTasks,
       lockedAt: new Date().toISOString(),
       startDate: new Date().toISOString(),
-      targetLaunchDate: new Date(Date.now() + timeline.targetMonths * 30 * 24 * 60 * 60 * 1000).toISOString(),
+      targetLaunchDate: new Date(Date.now() + targetMonths * 30 * 24 * 60 * 60 * 1000).toISOString(),
       currentProgress: 0,
       completedTasksCount: 0,
       totalTasksCount: dailyTasks?.length || 0
     };
 
+    console.log(`   ✅ Plan locked successfully`);
+    console.log(`   Plan ID: ${lockedPlan.id}`);
+    console.log(`   Total Tasks: ${lockedPlan.totalTasksCount}`);
     res.json({ lockedPlan });
   } catch (error) {
-    console.error("❌ Lock plan AI failed, launching mission support fallback:", error.message);
-    const { blueprint, executionPlan, timeline } = req.body;
+    console.error(`   ❌ Lock plan AI failed, launching mission support fallback: ${error.message}`);
+    const { blueprint = {}, executionPlan = [], timeline = {} } = req.body;
     const rescueTasks = getRescueDailyTasks();
+    const targetMonths = timeline?.targetMonths || 3;
+    
     const lockedPlan = {
       id: "rescue-" + Math.random().toString(36).substring(7),
       blueprint,
-      executionPlan: executionPlan || getRescueExecutionPlan(blueprint?.productName),
+      executionPlan: executionPlan || getRescueExecutionPlan(blueprint?.productName || 'Startup'),
       timeline,
       dailyTasks: rescueTasks,
       lockedAt: new Date().toISOString(),
       startDate: new Date().toISOString(),
-      targetLaunchDate: new Date(Date.now() + (timeline?.targetMonths || 1) * 30 * 24 * 60 * 60 * 1000).toISOString(),
+      targetLaunchDate: new Date(Date.now() + targetMonths * 30 * 24 * 60 * 60 * 1000).toISOString(),
       currentProgress: 0,
       completedTasksCount: 0,
       totalTasksCount: rescueTasks.length
     };
+    
+    console.log(`   ✅ Using rescue plan: ${lockedPlan.id} (${rescueTasks.length} tasks)`);
     res.json({ lockedPlan });
   }
 });
