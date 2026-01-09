@@ -5,6 +5,8 @@ import ProblemStatement from './landing/ProblemStatement';
 import EmpireBuildingScroll from './landing/EmpireBuildingScroll';
 import HowItWorks from './landing/HowItWorks';
 import FeatureShowcase from './landing/FeatureShowcase';
+import FAQ from './landing/FAQ';
+import Testimonials from './landing/Testimonials';
 import Pricing from './landing/Pricing';
 import MegaMenu from './landing/MegaMenu';
 
@@ -34,10 +36,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGenerate, isLoading }) => {
             {/* 6. Feature Showcase: Bento Grid */}
             <FeatureShowcase />
 
-            {/* 7. Pricing: Simple Tiers */}
+            {/* 7. Testimonials: Social Evidence */}
+            <Testimonials />
+
+            {/* 8. FAQ: Addressing Objections */}
+            <FAQ />
+
+            {/* 9. Pricing: Simple Tiers */}
             <Pricing />
 
-            {/* 8. Mega Menu: Dynamic Island Dock */}
+            {/* 10. Mega Menu: Dynamic Island Dock */}
             <MegaMenu />
         </div>
     );
