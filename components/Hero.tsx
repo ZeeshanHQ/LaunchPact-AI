@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Target, Rocket, Command, BrainCircuit, Wand2, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { enhanceUserPrompt } from '../services/geminiService';
 
 interface HeroProps {
@@ -38,7 +38,7 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
     }
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -49,7 +49,7 @@ const Hero: React.FC<HeroProps> = ({ onGenerate, isLoading }) => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
