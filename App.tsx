@@ -290,7 +290,14 @@ const AppContent: React.FC = () => {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    navigate('/dashboard');
+    // Check if there's a return path after login
+    const returnPath = localStorage.getItem('returnAfterLogin');
+    if (returnPath) {
+      localStorage.removeItem('returnAfterLogin');
+      navigate(returnPath);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const handleSaveProject = async () => {

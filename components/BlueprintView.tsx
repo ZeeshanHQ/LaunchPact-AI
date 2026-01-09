@@ -457,12 +457,20 @@ const BlueprintView: React.FC<BlueprintViewProps> = ({ blueprint, onSave, isLogg
                      </div>
 
                      <button
-                        onClick={onStartGuidedMode}
+                        onClick={() => {
+                           if (!isLoggedIn) {
+                              // Save current path to return after login
+                              localStorage.setItem('returnAfterLogin', '/planner');
+                              navigate('/login');
+                           } else {
+                              onStartGuidedMode();
+                           }
+                        }}
                         className="group relative inline-flex items-center gap-6 bg-indigo-600 text-white px-16 py-8 rounded-[2.5rem] font-black text-2xl uppercase tracking-tighter hover:bg-indigo-700 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.3)] hover:scale-[1.02] active:scale-95 overflow-hidden italic"
                      >
                         <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                         <Rocket size={40} className="group-hover:rotate-12 transition-transform" />
-                        Deploy Venture
+                        {!isLoggedIn ? 'Login to Deploy' : 'Deploy Venture'}
                         <ArrowRight size={32} className="group-hover:translate-x-3 transition-transform" />
                      </button>
                   </div>

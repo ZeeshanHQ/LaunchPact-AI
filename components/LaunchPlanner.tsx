@@ -84,7 +84,53 @@ const LaunchPlanner: React.FC<LaunchPlannerProps> = ({ blueprint, initialState, 
     useEffect(() => {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (user?.email) setCurrentUserEmail(user.email);
+            if (user?.email) {
+                setCurrentUserEmail(user.email);
+                
+                // Check for saved user preference (solo/team)
+                if (!initialState && user.id) {
+                    const savedPreference = localStorage.getItem(`user_dashboard_preference_${user.id}`);
+                    const savedActivePlan = localStorage.getItem(`forge_active_plan_${user.id}`);
+                    
+                    // If user has a saved preference or already has an active plan, auto-select
+                    if (savedPreference || savedActivePlan) {
+                        let preferenceSetupType: 'solo' | 'team' = 'solo';
+                        
+                        // Priority 1: Check active plan if exists
+                        if (savedActivePlan) {
+                            try {
+                                const activePlan = JSON.parse(savedActivePlan);
+                                preferenceSetupType = activePlan.teamSetup?.setupType || 'solo';
+                            } catch (e) {
+                                console.error('Error parsing active plan:', e);
+                            }
+                        }
+                        
+                        // Priority 2: Check saved preference
+                        if (savedPreference) {
+                            preferenceSetupType = savedPreference as 'solo' | 'team';
+                        }
+                        
+                        // Auto-set team setup based on preference
+                        const autoSetup: TeamSetupType = {
+                            setupType: preferenceSetupType,
+                            teamSize: preferenceSetupType === 'solo' ? 1 : 1,
+                            members: [],
+                            allRequiredApproved: preferenceSetupType === 'solo',
+                            createdBy: user.email || '',
+                            createdByName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Founder'
+                        };
+                        
+                        setTeamSetup(autoSetup);
+                        console.log(`[PREFERENCE] Auto-loaded dashboard preference: ${preferenceSetupType}`);
+                        
+                        // If timeline is complete, skip to step 4 (lock)
+                        if (timeline) {
+                            setCurrentStep(4);
+                        }
+                    }
+                }
+            }
         };
         checkUser();
 
@@ -137,6 +183,12 @@ const LaunchPlanner: React.FC<LaunchPlannerProps> = ({ blueprint, initialState, 
         };
 
         setTeamSetup(setup);
+
+        // Save user preference for future use
+        if (user?.id) {
+            localStorage.setItem(`user_dashboard_preference_${user.id}`, setupType);
+            console.log(`[PREFERENCE] Saved dashboard preference: ${setupType} for user ${user.id}`);
+        }
 
         // SOLO MODE: Continue to Lock Step
         if (setupType === 'solo') {
@@ -650,7 +702,49 @@ const LaunchPlanner: React.FC<LaunchPlannerProps> = ({ blueprint, initialState, 
 
                         {currentStep < 4 && (
                             <button
-                                onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4)}
+                                onClick={async () => {
+                                    // Check if moving from step 2 to 3, and if user has preference, skip step 3
+                                    if (currentStep === 2) {
+                                        const { data: { user } } = await supabase.auth.getUser();
+                                        if (user?.id) {
+                                            const savedPreference = localStorage.getItem(`user_dashboard_preference_${user.id}`);
+                                            const savedActivePlan = localStorage.getItem(`forge_active_plan_${user.id}`);
+                                            
+                                            // If user has preference or active plan, skip step 3 and go to step 4
+                                            if (savedPreference || savedActivePlan) {
+                                                let preferenceSetupType: 'solo' | 'team' = 'solo';
+                                                
+                                                if (savedActivePlan) {
+                                                    try {
+                                                        const activePlan = JSON.parse(savedActivePlan);
+                                                        preferenceSetupType = activePlan.teamSetup?.setupType || 'solo';
+                                                    } catch (e) {
+                                                        console.error('Error parsing active plan:', e);
+                                                    }
+                                                } else if (savedPreference) {
+                                                    preferenceSetupType = savedPreference as 'solo' | 'team';
+                                                }
+                                                
+                                                // Auto-set team setup based on preference
+                                                const autoSetup: TeamSetupType = {
+                                                    setupType: preferenceSetupType,
+                                                    teamSize: preferenceSetupType === 'solo' ? 1 : 1,
+                                                    members: [],
+                                                    allRequiredApproved: preferenceSetupType === 'solo',
+                                                    createdBy: user.email || '',
+                                                    createdByName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Founder'
+                                                };
+                                                
+                                                setTeamSetup(autoSetup);
+                                                setCurrentStep(4); // Skip to lock step
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Normal flow: go to next step
+                                    setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+                                }}
                                 disabled={!canProceed()}
                                 className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
