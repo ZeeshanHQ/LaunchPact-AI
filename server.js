@@ -9,7 +9,22 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: '.env' });
+// Load environment variables from .env and .env.local
+// .env.local is often used for local secrets and should be loaded if it exists
+import fs from 'fs';
+const envPaths = [
+  path.join(__dirname, '.env'),
+  path.join(__dirname, '.env.local'),
+  path.join(__dirname, '..', '.env'),
+  path.join(__dirname, '..', '.env.local')
+];
+
+envPaths.forEach(envPath => {
+  if (fs.existsSync(envPath)) {
+    console.log(`📄 Loading environment variables from: ${envPath}`);
+    dotenv.config({ path: envPath });
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,7 +45,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin matches allowed list
     const isAllowed = allowedOrigins.some(allowed => {
       if (typeof allowed === 'string') {
@@ -40,7 +55,7 @@ app.use(cors({
       }
       return false;
     });
-    
+
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -64,7 +79,14 @@ app.use((req, res, next) => {
 
 // --- Configuration ---
 // Priority: Environment variables first, then fallback to empty string
-const OPENROUTER_API_KEY = (process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY || '').trim();
+// Priority: Environment variables first, then fallback to empty string
+// We check multiple possible names that people often use
+const OPENROUTER_API_KEY = (
+  process.env.OPENROUTER_API_KEY ||
+  process.env.VITE_OPENROUTER_API_KEY ||
+  process.env.OPEN_ROUTER_API_KEY ||
+  ''
+).trim();
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
