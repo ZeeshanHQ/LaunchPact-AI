@@ -331,7 +331,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY} `,
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': process.env.VITE_APP_URL || 'http://localhost:3000',
           'X-Title': 'LaunchPact AI'
