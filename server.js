@@ -79,14 +79,19 @@ app.use((req, res, next) => {
 
 // --- Configuration ---
 // Priority: Environment variables first, then fallback to empty string
-// Priority: Environment variables first, then fallback to empty string
 // We check multiple possible names that people often use
-const OPENROUTER_API_KEY = (
+let rawKey = (
   process.env.OPENROUTER_API_KEY ||
   process.env.VITE_OPENROUTER_API_KEY ||
   process.env.OPEN_ROUTER_API_KEY ||
   ''
 ).trim();
+
+// ULTRA-ROBUST SANITIZATION: Remove any quotes, extra spaces, or hidden characters
+// This fixes common copy-paste issues in Render/Vercel dashboards
+const OPENROUTER_API_KEY = rawKey.replace(/['"\s]/g, '');
+
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim().replace(/['"\s]/g, '');
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -250,27 +255,27 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
   console.log(`\n═══════════════════════════════════════════════════════════════`);
   console.log(`📡 [${timestamp}] [REQUEST-${requestId}] OPENROUTER API CALL INITIATED`);
   console.log(`═══════════════════════════════════════════════════════════════`);
-  console.log(`  console.log(`   Request ID: ${ requestId }`);
-  console.log(`   Request Type: ${ isJson? 'JSON Response Required': 'Text Response' }`);
-  console.log(`   Total Models Available: ${ MODELS.length }`);
-  console.log(`   API Key Status: ${ OPENROUTER_API_KEY? '✓ LOADED': '✗ MISSING' }`);
-  
+  console.log(`   Request ID: ${requestId}`);
+  console.log(`   Request Type: ${isJson ? 'JSON Response Required' : 'Text Response'}`);
+  console.log(`   Total Models Available: ${MODELS.length}`);
+  console.log(`   API Key Status: ${OPENROUTER_API_KEY ? '✓ LOADED' : '✗ MISSING'}`);
+
   // DIAGNOSTIC SIGNATURE: Show exact fingerprint without full key
   if (OPENROUTER_API_KEY) {
     const keyLen = OPENROUTER_API_KEY.length;
-    const signature = `${ OPENROUTER_API_KEY.substring(0, 8) }...${ OPENROUTER_API_KEY.slice(-6) }`;
+    const signature = `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}`;
     const startsCorrect = OPENROUTER_API_KEY.startsWith('sk-or-v1-');
     console.log(`   🔍 KEY DIAGNOSTICS: `);
-    console.log(`      Signature: ${ signature }`);
-    console.log(`      Length: ${ keyLen } chars`);
-    console.log(`      Format Valid(sk - or - v1 -): ${ startsCorrect? '✅ YES': '❌ NO' }`);
+    console.log(`      Signature: ${signature}`);
+    console.log(`      Length: ${keyLen} chars`);
+    console.log(`      Format Valid(sk - or - v1 -): ${startsCorrect ? '✅ YES' : '❌ NO'}`);
     if (keyLen < 30) console.log(`      ⚠️ WARNING: Key length seems too short!`);
   }
-  
+
   console.log(`   Models to Try: `);
   MODELS.forEach((m, idx) => {
     const tier = idx === 0 ? 'TIER-1 (Auto)' : idx < 9 ? 'TIER-2 (Free)' : idx < 11 ? 'TIER-3 (Free)' : 'TIER-4 (Paid)';
-    console.log(`      ${ idx + 1}.[${ tier }] ${ m }`);
+    console.log(`      ${idx + 1}.[${tier}] ${m}`);
   });
   console.log(`═══════════════════════════════════════════════════════════════\n`);
 
@@ -295,10 +300,10 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
     try {
       console.log(`\n   ┌─────────────────────────────────────────────────────────`);
-      console.log(`   │ 🤖[${ attemptNum } / ${ MODELS.length }] ATTEMPTING MODEL: ${ model } `);
-      console.log(`   │    Request ID: ${ requestId } `);
-      console.log(`   │    Timestamp: ${ new Date().toISOString() } `);
-      console.log(`   │    Tier: ${ i === 0 ? 'TIER-1 (Auto-select)' : i < 9 ? 'TIER-2 (Free)' : i < 11 ? 'TIER-3 (Free)' : 'TIER-4 (Paid Fallback)' } `);
+      console.log(`   │ 🤖[${attemptNum} / ${MODELS.length}] ATTEMPTING MODEL: ${model} `);
+      console.log(`   │    Request ID: ${requestId} `);
+      console.log(`   │    Timestamp: ${new Date().toISOString()} `);
+      console.log(`   │    Tier: ${i === 0 ? 'TIER-1 (Auto-select)' : i < 9 ? 'TIER-2 (Free)' : i < 11 ? 'TIER-3 (Free)' : 'TIER-4 (Paid Fallback)'} `);
       console.log(`   └─────────────────────────────────────────────────────────`);
 
       const requestBody = {
@@ -327,7 +332,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${ OPENROUTER_API_KEY } `,
+          'Authorization': `Bearer ${OPENROUTER_API_KEY} `,
           'Content-Type': 'application/json',
           'HTTP-Referer': process.env.VITE_APP_URL || 'http://localhost:3000',
           'X-Title': 'LaunchPact AI'
@@ -339,7 +344,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       clearTimeout(timeoutId);
       const duration = Date.now() - startTime;
       const statusEmoji = response.ok ? '✅' : '❌';
-      console.log(`   │ ${ statusEmoji } Response received: ${ duration } ms | Status: ${ response.status } ${ response.statusText } `);
+      console.log(`   │ ${statusEmoji} Response received: ${duration} ms | Status: ${response.status} ${response.statusText} `);
 
       if (!response.ok) {
         let errorMsg = response.statusText;
@@ -351,17 +356,17 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
           errorMsg = errorData.error?.message || errorData.error?.type || errorMsg;
           errorCode = errorData.error?.code;
           errorDetails = errorData.error || {};
-          console.log(`   │    Error Type: ${ errorDetails.type || 'Unknown' } `);
-          console.log(`   │    Error Code: ${ errorCode || 'N/A' } `);
-          console.log(`   │    Error Message: ${ errorMsg.substring(0, 150) }${ errorMsg.length > 150 ? '...' : '' } `);
+          console.log(`   │    Error Type: ${errorDetails.type || 'Unknown'} `);
+          console.log(`   │    Error Code: ${errorCode || 'N/A'} `);
+          console.log(`   │    Error Message: ${errorMsg.substring(0, 150)}${errorMsg.length > 150 ? '...' : ''} `);
         } catch (e) {
           const text = await response.text().catch(() => '');
           errorMsg = text || errorMsg;
-          console.log(`   │    Error Response: ${ text.substring(0, 200) }${ text.length > 200 ? '...' : '' } `);
+          console.log(`   │    Error Response: ${text.substring(0, 200)}${text.length > 200 ? '...' : ''} `);
         }
 
-        console.log(`   │ ⚠️  MODEL FAILED: ${ model } `);
-        console.log(`   │    Reason: ${ response.status } - ${ errorMsg.substring(0, 100) } `);
+        console.log(`   │ ⚠️  MODEL FAILED: ${model} `);
+        console.log(`   │    Reason: ${response.status} - ${errorMsg.substring(0, 100)} `);
         allErrors.push({
           model,
           status: response.status,
@@ -373,12 +378,12 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
         // If it's a rate limit, wait longer before trying next model
         if (response.status === 429) {
           const waitTime = 5000; // 5 seconds for rate limits
-          console.log(`   │ ⏳ Rate limited(429).Waiting ${ waitTime }ms before next model...`);
+          console.log(`   │ ⏳ Rate limited(429).Waiting ${waitTime}ms before next model...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
         } else if (response.status >= 500) {
           // Server errors - wait a bit but not too long
           const waitTime = 2000;
-          console.log(`   │ ⏳ Server error(${ response.status }).Waiting ${ waitTime }ms...`);
+          console.log(`   │ ⏳ Server error(${response.status}).Waiting ${waitTime}ms...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
         } else {
           // Client errors (400, 401, 403) - try next model immediately
@@ -414,84 +419,84 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       successfulResponse = content;
 
       console.log(`   │`);
-      console.log(`   │ ✅✅✅ SUCCESS! MODEL WORKED: ${ modelUsed } ✅✅✅`);
+      console.log(`   │ ✅✅✅ SUCCESS! MODEL WORKED: ${modelUsed} ✅✅✅`);
       console.log(`   │`);
-      console.log(`   │    Total Time: ${ totalDuration } ms`);
-      console.log(`   │    Tokens Used: ${ tokensUsed } `);
-      console.log(`   │    Response Length: ${ content.length } characters`);
-      console.log(`   │    Preview: ${ content.substring(0, 120).replace(/\n/g, ' ') }...`);
+      console.log(`   │    Total Time: ${totalDuration} ms`);
+      console.log(`   │    Tokens Used: ${tokensUsed} `);
+      console.log(`   │    Response Length: ${content.length} characters`);
+      console.log(`   │    Preview: ${content.substring(0, 120).replace(/\n/g, ' ')}...`);
       console.log(`   │`);
       console.log(`   └─────────────────────────────────────────────────────────`);
       console.log(`\n═══════════════════════════════════════════════════════════════`);
-      console.log(`✅[${ new Date().toISOString() }][REQUEST - ${ requestId }]SUCCESS`);
-      console.log(`   Successful Model: ${ modelUsed } `);
-      console.log(`   Attempt Number: ${ attemptNum }/${MODELS.length}`);
-console.log(`   Total Duration: ${totalDuration}ms`);
-console.log(`═══════════════════════════════════════════════════════════════\n`);
+      console.log(`✅[${new Date().toISOString()}][REQUEST - ${requestId}]SUCCESS`);
+      console.log(`   Successful Model: ${modelUsed} `);
+      console.log(`   Attempt Number: ${attemptNum}/${MODELS.length}`);
+      console.log(`   Total Duration: ${totalDuration}ms`);
+      console.log(`═══════════════════════════════════════════════════════════════\n`);
 
-return content;
+      return content;
 
     } catch (error) {
-  const isTimeout = error.name === 'AbortError';
-  const isNetwork = error.message.includes('fetch') || error.message.includes('network');
-  const errorType = isTimeout ? 'TIMEOUT' : isNetwork ? 'NETWORK_ERROR' : 'EXCEPTION';
-  const attemptDuration = Date.now() - attemptStart;
+      const isTimeout = error.name === 'AbortError';
+      const isNetwork = error.message.includes('fetch') || error.message.includes('network');
+      const errorType = isTimeout ? 'TIMEOUT' : isNetwork ? 'NETWORK_ERROR' : 'EXCEPTION';
+      const attemptDuration = Date.now() - attemptStart;
 
-  console.log(`   │`);
-  console.log(`   │ ❌❌❌ ${errorType}: MODEL FAILED ❌❌❌`);
-  console.log(`   │    Model: ${model}`);
-  console.log(`   │    Duration: ${attemptDuration}ms`);
-  console.log(`   │    Error: ${error.message.substring(0, 150)}${error.message.length > 150 ? '...' : ''}`);
-  if (!isTimeout && error.stack && errorType === 'EXCEPTION') {
-    console.log(`   │    Stack (first line): ${error.stack.split('\n')[1]?.trim() || 'N/A'}`);
+      console.log(`   │`);
+      console.log(`   │ ❌❌❌ ${errorType}: MODEL FAILED ❌❌❌`);
+      console.log(`   │    Model: ${model}`);
+      console.log(`   │    Duration: ${attemptDuration}ms`);
+      console.log(`   │    Error: ${error.message.substring(0, 150)}${error.message.length > 150 ? '...' : ''}`);
+      if (!isTimeout && error.stack && errorType === 'EXCEPTION') {
+        console.log(`   │    Stack (first line): ${error.stack.split('\n')[1]?.trim() || 'N/A'}`);
+      }
+      console.log(`   │`);
+
+      allErrors.push({
+        model,
+        status: errorType,
+        error: error.message,
+        duration: attemptDuration
+      });
+
+      // Small delay before trying next model (longer for timeouts)
+      if (i < MODELS.length - 1) {
+        const delay = isTimeout ? 2000 : (isNetwork ? 1500 : 500);
+        console.log(`   │ ⏳ Waiting ${delay}ms before trying next model...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      console.log(`   └─────────────────────────────────────────────────────────`);
+    }
   }
-  console.log(`   │`);
 
-  allErrors.push({
-    model,
-    status: errorType,
-    error: error.message,
-    duration: attemptDuration
+  // All models failed - log comprehensive error report
+  console.log(`\n`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  console.log(`❌❌❌ [${new Date().toISOString()}] [REQUEST-${requestId}] ALL MODELS FAILED ❌❌❌`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
+  console.log(`   Request ID: ${requestId}`);
+  console.log(`   Total Models Attempted: ${MODELS.length}`);
+  console.log(`   Request Type: ${isJson ? 'JSON' : 'Text'}`);
+  console.log(`\n   DETAILED FAILURE LOG:`);
+  console.log(`   ───────────────────────────────────────────────────────────`);
+  allErrors.forEach((err, idx) => {
+    console.log(`   ${idx + 1}. Model: ${err.model}`);
+    console.log(`      Status: ${err.status} | Duration: ${err.duration}ms`);
+    console.log(`      Error: ${err.error.substring(0, 200)}${err.error.length > 200 ? '...' : ''}`);
+    if (err.code) console.log(`      Code: ${err.code}`);
+    console.log(``);
   });
+  console.log(`   ───────────────────────────────────────────────────────────`);
+  console.log(`\n   TROUBLESHOOTING SUGGESTIONS:`);
+  console.log(`   1. Check OpenRouter API key is valid`);
+  console.log(`   2. Check internet connection`);
+  console.log(`   3. Check OpenRouter status page: https://openrouter.ai/status`);
+  console.log(`   4. Verify API key has sufficient credits/quota`);
+  console.log(`   5. Check if all free models are temporarily unavailable`);
+  console.log(`\n   This detailed log will be visible in Render backend logs.`);
+  console.log(`═══════════════════════════════════════════════════════════════\n`);
 
-  // Small delay before trying next model (longer for timeouts)
-  if (i < MODELS.length - 1) {
-    const delay = isTimeout ? 2000 : (isNetwork ? 1500 : 500);
-    console.log(`   │ ⏳ Waiting ${delay}ms before trying next model...`);
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  console.log(`   └─────────────────────────────────────────────────────────`);
-}
-  }
-
-// All models failed - log comprehensive error report
-console.log(`\n`);
-console.log(`═══════════════════════════════════════════════════════════════`);
-console.log(`❌❌❌ [${new Date().toISOString()}] [REQUEST-${requestId}] ALL MODELS FAILED ❌❌❌`);
-console.log(`═══════════════════════════════════════════════════════════════`);
-console.log(`   Request ID: ${requestId}`);
-console.log(`   Total Models Attempted: ${MODELS.length}`);
-console.log(`   Request Type: ${isJson ? 'JSON' : 'Text'}`);
-console.log(`\n   DETAILED FAILURE LOG:`);
-console.log(`   ───────────────────────────────────────────────────────────`);
-allErrors.forEach((err, idx) => {
-  console.log(`   ${idx + 1}. Model: ${err.model}`);
-  console.log(`      Status: ${err.status} | Duration: ${err.duration}ms`);
-  console.log(`      Error: ${err.error.substring(0, 200)}${err.error.length > 200 ? '...' : ''}`);
-  if (err.code) console.log(`      Code: ${err.code}`);
-  console.log(``);
-});
-console.log(`   ───────────────────────────────────────────────────────────`);
-console.log(`\n   TROUBLESHOOTING SUGGESTIONS:`);
-console.log(`   1. Check OpenRouter API key is valid`);
-console.log(`   2. Check internet connection`);
-console.log(`   3. Check OpenRouter status page: https://openrouter.ai/status`);
-console.log(`   4. Verify API key has sufficient credits/quota`);
-console.log(`   5. Check if all free models are temporarily unavailable`);
-console.log(`\n   This detailed log will be visible in Render backend logs.`);
-console.log(`═══════════════════════════════════════════════════════════════\n`);
-
-throw new Error(`All ${MODELS.length} AI models failed. Request ID: ${requestId}. Check Render logs for detailed failure analysis. Last 3 errors: ${allErrors.slice(-3).map(e => `${e.model} (${e.status})`).join(' | ')}`);
+  throw new Error(`All ${MODELS.length} AI models failed. Request ID: ${requestId}. Check Render logs for detailed failure analysis. Last 3 errors: ${allErrors.slice(-3).map(e => `${e.model} (${e.status})`).join(' | ')}`);
 };
 
 // --- Routes ---
