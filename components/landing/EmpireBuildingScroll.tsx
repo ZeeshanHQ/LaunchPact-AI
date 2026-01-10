@@ -1,7 +1,6 @@
-
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Zap, Layers, Globe, ArrowRight, BrainCircuit, LayoutTemplate } from 'lucide-react';
+import { Zap, Layers, Globe, ArrowRight, TrendingUp, ShieldCheck, Users } from 'lucide-react';
 
 const EmpireBuildingScroll: React.FC = () => {
     const targetRef = useRef<HTMLDivElement>(null);
@@ -10,149 +9,146 @@ const EmpireBuildingScroll: React.FC = () => {
         offset: ["start start", "end end"]
     });
 
+    // Horizontal Scroll Logic
+    // As user scrolls vertically (0 -> 1), we translate the horizontal container leftwards (0% -> -200%)
+    const x = useTransform(scrollYProgress, [0, 1], ["0%", "-75%"]);
+
     return (
         <section ref={targetRef} className="relative h-[300vh] bg-slate-950">
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Sticky Container */}
+            <div className="sticky top-0 h-screen flex items-center overflow-hidden">
 
-                    {/* LEFT: Text Content */}
-                    <div className="relative z-10 space-y-20">
-                        <StepText
-                            progress={scrollYProgress}
-                            range={[0, 0.3]}
-                            title="Everything starts with a Spark."
-                            desc="Raw intuition. A fleeting thought. Most let it fade. You capture it."
-                            badge="Phase 1: The Spark"
-                        />
-                        <StepText
-                            progress={scrollYProgress}
-                            range={[0.3, 0.6]}
-                            title="Blueprint the Future."
-                            desc="We turn that spark into a structural masterpiece. Architecture, database, features - locked."
-                            badge="Phase 2: The Blueprint"
-                        />
-                        <StepText
-                            progress={scrollYProgress}
-                            range={[0.6, 1]}
-                            title="Build Your Empire."
-                            desc="From code to scale. Launch a professional AI SaaS that dominates the market."
-                            badge="Phase 3: The Empire"
-                        />
+                {/* Horizontal Track */}
+                <motion.div style={{ x }} className="flex gap-20 pl-20 pr-40">
+
+                    {/* SECTION 1: INTRO */}
+                    <div className="w-[80vw] md:w-[60vw] flex-shrink-0 flex flex-col justify-center">
+                        <h2 className="text-6xl md:text-8xl font-black text-white leading-tight mb-8">
+                            How we <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">solve the chaos.</span>
+                        </h2>
+                        <p className="text-xl text-slate-400 max-w-lg leading-relaxed">
+                            Building a startup usually looks like scattered docs, messy code, and endless delays.
+                            We linearized the path to empire.
+                            <br /><br />
+                            <span className="text-white font-bold flex items-center gap-2">
+                                <ArrowRight className="text-indigo-500" /> Scroll to explore
+                            </span>
+                        </p>
                     </div>
 
-                    {/* RIGHT: Visual Transformation */}
-                    <div className="relative h-[500px] w-full flex items-center justify-center perspective-1000">
-
-                        {/* 1. Idea Card */}
-                        <VisualCard
-                            progress={scrollYProgress}
-                            range={[0, 0.3]}
-                            outRange={[0.3, 0.4]}
-                            className="bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_0_50px_rgba(99,102,241,0.3)]"
-                        >
-                            <div className="flex flex-col items-center text-white">
-                                <Zap size={64} className="mb-4 animate-pulse" />
-                                <h3 className="text-2xl font-black uppercase tracking-widest">Raw Idea</h3>
-                                <p className="text-white/80 text-sm mt-2">"A legal AI for startups..."</p>
+                    {/* SECTION 2: THE PROBLEM (Practical View) */}
+                    <div className="w-[80vw] md:w-[70vw] flex-shrink-0 flex items-center gap-12 bg-slate-900/50 rounded-3xl p-12 border border-white/5">
+                        <div className="flex-1 space-y-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 text-red-400 rounded-full text-xs font-bold uppercase tracking-widest">
+                                <TrendingUp size={14} /> The Pain Point
                             </div>
-                        </VisualCard>
-
-                        {/* 2. Blueprint Schematic */}
-                        <VisualCard
-                            progress={scrollYProgress}
-                            range={[0.3, 0.6]}
-                            inRange={[0.2, 0.3]}
-                            outRange={[0.6, 0.7]}
-                            className="bg-slate-900 border border-indigo-500/50 shadow-[0_0_50px_rgba(99,102,241,0.15)] backdrop-blur-xl"
-                        >
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
-                            <div className="relative z-10 flex flex-col items-center text-indigo-300">
-                                <Layers size={64} className="mb-4" />
-                                <h3 className="text-2xl font-black uppercase tracking-widest">Blueprint</h3>
-                                <div className="flex gap-2 mt-4">
-                                    <div className="h-2 w-16 bg-indigo-500/40 rounded-full"></div>
-                                    <div className="h-2 w-8 bg-indigo-500/40 rounded-full"></div>
+                            <h3 className="text-4xl font-bold text-white">Execution Paralysis</h3>
+                            <p className="text-slate-400 text-lg">
+                                Most founders get stuck in "Tutorial Hell" or "Planning Purgatory".
+                                They have the vision but lack the unified toolchain to execute it.
+                            </p>
+                            <ul className="space-y-3">
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <div className="w-2 h-2 rounded-full bg-red-500" /> Disconnected tools
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <div className="w-2 h-2 rounded-full bg-red-500" /> High development costs
+                                </li>
+                                <li className="flex items-center gap-3 text-slate-300">
+                                    <div className="w-2 h-2 rounded-full bg-red-500" /> No clear roadmap
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="flex-1 h-[400px] bg-slate-800 rounded-xl relative overflow-hidden shadow-2xl group border border-white/5 mx-auto">
+                            {/* Visual of "Chaos" */}
+                            <div className="absolute inset-0 opacity-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+                            <motion.div
+                                animate={{ scale: [1, 1.05, 1], rotate: [0, 1, -1, 0] }}
+                                transition={{ duration: 5, repeat: Infinity }}
+                                className="absolute inset-0 flex items-center justify-center"
+                            >
+                                <div className="grid grid-cols-2 gap-4 opacity-50">
+                                    <div className="w-32 h-20 bg-red-500/20 rounded-lg blur-sm"></div>
+                                    <div className="w-24 h-24 bg-orange-500/20 rounded-full blur-sm"></div>
+                                    <div className="w-28 h-28 bg-yellow-500/20 rounded-md blur-sm ml-8"></div>
                                 </div>
-                                <div className="flex gap-2 mt-2">
-                                    <div className="h-2 w-24 bg-indigo-500/40 rounded-full"></div>
-                                </div>
-                            </div>
-                        </VisualCard>
-
-                        {/* 3. Empire Dashboard */}
-                        <VisualCard
-                            progress={scrollYProgress}
-                            range={[0.6, 1]}
-                            inRange={[0.5, 0.6]}
-                            className="bg-white text-slate-900 shadow-[0_0_80px_rgba(255,255,255,0.2)]"
-                        >
-                            <div className="flex flex-col items-center w-full max-w-xs">
-                                <div className="flex items-center justify-between w-full mb-6 border-b border-slate-200 pb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded bg-indigo-600"></div>
-                                        <span className="font-bold text-sm">EmpireOS</span>
-                                    </div>
-                                    <Globe size={16} className="text-slate-400" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-3 w-full">
-                                    <div className="bg-slate-100 p-3 rounded-lg">
-                                        <span className="text-xs text-slate-500 font-bold block mb-1">REVENUE</span>
-                                        <span className="text-lg font-black text-indigo-600">$10,420</span>
-                                    </div>
-                                    <div className="bg-slate-100 p-3 rounded-lg">
-                                        <span className="text-xs text-slate-500 font-bold block mb-1">USERS</span>
-                                        <span className="text-lg font-black text-indigo-600">8.5k</span>
-                                    </div>
-                                </div>
-                                <ArrowRight className="mt-6 text-slate-400 animate-bounce" />
-                            </div>
-                        </VisualCard>
-
+                                <span className="absolute text-5xl font-black text-white/10 uppercase tracking-widest transform -rotate-12">Chaos</span>
+                            </motion.div>
+                        </div>
                     </div>
-                </div>
+
+                    {/* SECTION 3: THE SOLUTION (Practical Work) */}
+                    <div className="w-[80vw] md:w-[70vw] flex-shrink-0 flex items-center gap-12 bg-indigo-900/10 rounded-3xl p-12 border border-indigo-500/20 backdrop-blur-sm">
+                        <div className="flex-1 space-y-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-xs font-bold uppercase tracking-widest">
+                                <ShieldCheck size={14} /> The Solution
+                            </div>
+                            <h3 className="text-4xl font-bold text-white">Autonomous Foundry</h3>
+                            <p className="text-slate-300 text-lg">
+                                We provide the entire C-Suite in a box. AI Architects, Engineers, and Marketers working 24/7 on your vision.
+                            </p>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                                <div className="p-4 bg-slate-900/80 rounded-lg border border-indigo-500/20">
+                                    <Zap className="text-yellow-400 mb-2" />
+                                    <div className="font-bold text-white">Instant Validation</div>
+                                    <div className="text-xs text-slate-500">Market-fit checks in seconds</div>
+                                </div>
+                                <div className="p-4 bg-slate-900/80 rounded-lg border border-indigo-500/20">
+                                    <Layers className="text-blue-400 mb-2" />
+                                    <div className="font-bold text-white">Auto-Architecture</div>
+                                    <div className="text-xs text-slate-500">Full stack specs generated</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex-1 h-[400px] bg-slate-900 rounded-xl relative overflow-hidden shadow-2xl border border-indigo-500/30 flex items-center justify-center">
+                            {/* Visual of "Order" */}
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                            <div className="relative z-10 w-64 p-4 bg-slate-800 rounded-lg border border-indigo-500/50 shadow-lg">
+                                <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-2">
+                                    <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center text-white"><Zap size={16} /></div>
+                                    <div>
+                                        <div className="text-xs text-slate-400">Project status</div>
+                                        <div className="font-bold text-white text-sm">Building Empire</div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            whileInView={{ width: "75%" }}
+                                            transition={{ duration: 1.5 }}
+                                            className="h-full bg-indigo-500"
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                                        <span>Deploying DB...</span>
+                                        <span>75%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION 4: THE VALUE (Empire) */}
+                    <div className="w-[80vw] md:w-[60vw] flex-shrink-0 flex flex-col justify-center items-start">
+                        <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold uppercase tracking-widest">
+                            <Globe size={14} /> The Result
+                        </div>
+                        <h2 className="text-6xl md:text-7xl font-black text-white leading-tight mb-8">
+                            Zero to <span className="text-emerald-400">Revenue.</span>
+                        </h2>
+                        <p className="text-xl text-slate-400 max-w-lg mb-8">
+                            You focus on the vision. LaunchPact handles the code, the infrastructure, and the scale.
+                        </p>
+                        <button className="bg-white text-slate-900 px-8 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-emerald-400 hover:text-slate-900 transition-all shadow-xl">
+                            Start Building Now
+                        </button>
+                    </div>
+
+                </motion.div>
             </div>
         </section>
-    );
-};
-
-const StepText = ({ progress, range, title, desc, badge }: { progress: any, range: [number, number], title: string, desc: string, badge: string }) => {
-    const opacity = useTransform(progress, [range[0] - 0.1, range[0], range[1], range[1] + 0.1], [0, 1, 1, 0]);
-    const y = useTransform(progress, [range[0] - 0.1, range[0], range[1], range[1] + 0.1], [50, 0, 0, -50]);
-
-    return (
-        <motion.div style={{ opacity, y, position: 'absolute', top: '35%', left: 0, width: '100%' }}>
-            <div className="inline-block px-3 py-1 mb-4 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest">
-                {badge}
-            </div>
-            <h2 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6">
-                {title}
-            </h2>
-            <p className="text-xl text-slate-400 max-w-md leading-relaxed">
-                {desc}
-            </p>
-        </motion.div>
-    );
-};
-
-const VisualCard = ({ children, progress, range, inRange, outRange, className }: any) => {
-    // Default in/out ranges if not explicitly provided
-    const enterStart = inRange ? inRange[0] : range[0] - 0.1;
-    const enterEnd = inRange ? inRange[1] : range[0];
-    const exitStart = outRange ? outRange[0] : range[1];
-    const exitEnd = outRange ? outRange[1] : range[1] + 0.1;
-
-    const opacity = useTransform(progress, [enterStart, enterEnd, exitStart, exitEnd], [0, 1, 1, 0]);
-    const scale = useTransform(progress, [enterStart, enterEnd, exitStart, exitEnd], [0.8, 1, 1, 0.8]);
-    const rotateX = useTransform(progress, [enterStart, enterEnd, exitStart, exitEnd], [45, 0, 0, -45]);
-    const y = useTransform(progress, [enterStart, enterEnd, exitStart, exitEnd], [100, 0, 0, -100]);
-
-    return (
-        <motion.div
-            style={{ opacity, scale, rotateX, y }}
-            className={`absolute w-[350px] h-[450px] rounded-[2rem] flex items-center justify-center p-8 ${className}`}
-        >
-            {children}
-        </motion.div>
     );
 };
 

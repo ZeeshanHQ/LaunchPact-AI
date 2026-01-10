@@ -305,3 +305,37 @@
   background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
   background-size: 1000px 100%;
 }
+
+/* --- Professional UI Overhaul Utilities --- */
+
+@layer components {
+
+  /* Island Navigation */
+  .nav-island {
+    @apply fixed left-1/2 -translate-x-1/2 top-6 z-50 rounded-full bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_40px_-12px_rgba(0, 0, 0, 0.5)] transition-all duration-500 will-change-transform;
+  }
+
+  .nav-island.scrolled {
+    @apply top-4 py-2 px-2 border-white/10 bg-slate-900/90 shadow-[0_20px_40px_-12px_rgba(0, 0, 0, 1)];
+  }
+
+  .nav-island.expanded {
+    @apply py-3 px-8 w-[90%] max-w-5xl;
+  }
+
+  /* Optimized Glows (Non-blur based for performance) */
+  .glow-radial-indigo {
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
