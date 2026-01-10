@@ -506,13 +506,33 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 // --- Routes ---
 
 // 0. Debug Auth Endpoint (TEMPORARY - FOR DIAGNOSTICS)
-app.get('/api/debug-auth', (req, res) => {
+app.get('/api/debug-auth', async (req, res) => {
   const keyLen = OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0;
   const signature = OPENROUTER_API_KEY ? `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}` : 'MISSING';
   const first5Hex = OPENROUTER_API_KEY ? Array.from(OPENROUTER_API_KEY.substring(0, 5)).map(c => c.charCodeAt(0).toString(16)).join(' ') : 'N/A';
 
+  // LIVE VERIFICATION: Try to actually use the key
+  let verificationResult = 'NOT_ATTEMPTED';
+  let verificationStatus = 0;
+
+  try {
+    if (OPENROUTER_API_KEY) {
+      const verifyResponse = await fetch('https://openrouter.ai/api/v1/auth/key', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+        }
+      });
+      verificationStatus = verifyResponse.status;
+      const data = await verifyResponse.json();
+      verificationResult = data;
+    }
+  } catch (error) {
+    verificationResult = { error: error.message };
+  }
+
   res.json({
-    appVersion: 'DEBUG_VER_5_LIVE_CHECK',
+    appVersion: 'DEBUG_VER_6_LIVE_KEY_TEST',
     timestamp: new Date().toISOString(),
     authStatus: {
       isLoaded: !!OPENROUTER_API_KEY,
@@ -520,6 +540,11 @@ app.get('/api/debug-auth', (req, res) => {
       signature: signature,
       formatValid: OPENROUTER_API_KEY ? OPENROUTER_API_KEY.startsWith('sk-or-v1-') : false,
       first5Hex: first5Hex
+    },
+    liveVerification: {
+      endpoint: 'https://openrouter.ai/api/v1/auth/key',
+      httpStatus: verificationStatus,
+      response: verificationResult
     },
     headerPreview: {
       authorization: OPENROUTER_API_KEY ? `Bearer ${OPENROUTER_API_KEY.substring(0, 5)}...` : 'Missing',
