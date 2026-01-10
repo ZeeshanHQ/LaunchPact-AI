@@ -92,7 +92,6 @@ let rawKey = (
 const OPENROUTER_API_KEY = rawKey.replace(/['"\s]/g, '');
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim().replace(/['"\s]/g, '');
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
