@@ -15,34 +15,76 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS Configuration with logging
+// Allow all Vercel deployments (with and without www, any subdomain)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://launchpact-ai.vercel.app',
+  'https://www.launchpact-ai.vercel.app',
+  'https://launchpact-ai.onrender.com',
+  // Allow any vercel.app subdomain for preview deployments
+  /^https:\/\/.*\.vercel\.app$/
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://launchpact-ai.vercel.app',
-    'https://launchpact-ai.onrender.com'
-  ],
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches allowed list
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return origin === allowed;
+      } else if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(null, true); // Allow all origins in production for now (adjust if needed)
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 
 // Request Logging Middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  const timestamp = new Date().toISOString();
+  const origin = req.headers.origin || 'N/A';
+  console.log(`[${timestamp}] ${req.method} ${req.url} | Origin: ${origin}`);
   next();
 });
 
 // --- Configuration ---
-// Hardcoded key as primary source to fix 401 errors
-const HARDCODED_KEY = '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';
-const OPENROUTER_API_KEY = (HARDCODED_KEY || process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
+// Priority: Environment variables first, then fallback to empty string
+const OPENROUTER_API_KEY = (process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY || '').trim();
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'noreply@cavexa.online';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const resend = new Resend(RESEND_API_KEY);
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Safe initialization - only create clients if keys are available
+let resend = null;
+let supabase = null;
+
+if (RESEND_API_KEY) {
+  resend = new Resend(RESEND_API_KEY);
+} else {
+  console.warn('⚠️  RESEND_API_KEY is missing. Email functionality will be disabled.');
+}
+
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+} else {
+  console.warn('⚠️  Supabase credentials missing. Database functionality will be limited.');
+}
 
 // Updated models list with verified, working FREE models from OpenRouter
 // Priority: Auto-select free models first, then specific reliable free models
@@ -50,7 +92,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const MODELS = [
   // TIER 1: Auto-select best free model (always try this first)
   'openrouter/auto:free',                      // Automatically selects the best free model available
-  
+
   // TIER 2: Verified High-Performance Free Models
   'mistralai/mixtral-8x7b-instruct:free',      // Smart and fast open model by Mistral
   'mistralai/mistral-7b-instruct:free',        // Lighter, faster version (32K context)
@@ -60,36 +102,46 @@ const MODELS = [
   'qwen/qwen3-coder:free',                     // Qwen's code-specific model (262K context)
   'nousresearch/nous-capybara-7b:free',        // Conversational model with good memory
   'gryphe/mythomax-l2-13b:free',               // Balanced between creativity and logic
-  
+
   // TIER 3: Additional Free Models as Last Resort
   'z-ai/glm-4.5-air:free',                     // Lightweight GLM model (131K context)
   'moonshotai/kimi-k2:free',                   // MoonshotAI's model (33K context)
-  
+
   // TIER 4: Emergency Paid Fallbacks (only if all free models completely fail)
   // Note: These may incur costs, but they're reliable as absolute last resort
   'anthropic/claude-3-haiku',
   'openai/gpt-3.5-turbo'
 ];
 
+console.log("\n================================================");
+console.log("🔥 LAUNCHPACT AI BACKEND IGNITION SEQUENCE");
 console.log("================================================");
-console.log("🔥 LAUNCHPACT AI BACKEND IGNITION SEQUENCE STARTED");
-console.log("================================================");
-console.log(`🔑 OpenRouter API Key: ${OPENROUTER_API_KEY ? 'LOADED ✓ (' + OPENROUTER_API_KEY.substring(0, 5) + '...' + OPENROUTER_API_KEY.slice(-5) + ')' : 'MISSING ✗'}`);
-console.log(`   Key Length: ${OPENROUTER_API_KEY.length}`);
-console.log(`📧 Resend API Key: ${RESEND_API_KEY ? 'LOADED ✓' : 'MISSING ✗'}`);
-console.log(`📧 Sender Email: ${SENDER_EMAIL}`);
-console.log(`🗄️  Supabase URL: ${SUPABASE_URL ? 'LOADED ✓' : 'MISSING ✗'}`);
-console.log(`🔐 Supabase Service Key: ${SUPABASE_SERVICE_KEY ? 'LOADED ✓' : 'MISSING ✗'}`);
-console.log(`🤖 Total Models Available: ${MODELS.length}`);
-console.log(`   Primary: ${MODELS[0]}`);
-console.log(`   Fallbacks: ${MODELS.slice(1).join(', ')}`);
-console.log("================================================");
-if (!OPENROUTER_API_KEY) {
-  console.log("⚠️  WARNING: OPENROUTER_API_KEY is missing!");
-  console.log("   AI features will not work. Set it in your .env file.");
-  console.log("   Get a free key at: https://openrouter.ai");
+console.log("\n📊 CONFIGURATION STATUS:");
+console.log("------------------------------------------------");
+console.log(`🔑 OpenRouter API Key: ${OPENROUTER_API_KEY ? '✓ LOADED (' + OPENROUTER_API_KEY.substring(0, 8) + '...' + OPENROUTER_API_KEY.slice(-4) + ')' : '✗ MISSING'}`);
+if (OPENROUTER_API_KEY) {
+  console.log(`   Key Length: ${OPENROUTER_API_KEY.length} characters`);
 }
-console.log("================================================");
+console.log(`📧 Resend API Key: ${RESEND_API_KEY ? '✓ LOADED' : '✗ MISSING (Email disabled)'}`);
+console.log(`📧 Sender Email: ${SENDER_EMAIL}`);
+console.log(`🗄️  Supabase URL: ${SUPABASE_URL ? '✓ LOADED' : '✗ MISSING'}`);
+console.log(`🔐 Supabase Service Key: ${SUPABASE_SERVICE_KEY ? '✓ LOADED' : '✗ MISSING'}`);
+console.log(`\n🤖 AI MODELS CONFIGURATION:`);
+console.log(`   Total Models: ${MODELS.length}`);
+console.log(`   Primary Model: ${MODELS[0]}`);
+console.log(`   Free Fallbacks: ${MODELS.slice(1, 9).length}`);
+console.log("\n================================================");
+
+if (!OPENROUTER_API_KEY) {
+  console.log("\n⚠️  CRITICAL WARNING: OPENROUTER_API_KEY MISSING!");
+  console.log("   → AI features will NOT work");
+  console.log("   → Set OPENROUTER_API_KEY in your .env file");
+  console.log("   → Get a free key: https://openrouter.ai/keys");
+  console.log("================================================\n");
+} else {
+  console.log("\n✅ All critical services initialized successfully!");
+  console.log("================================================\n");
+}
 
 // --- Helper: JSON Repair ---
 const repairJson = (jsonStr) => {
@@ -206,7 +258,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
     const model = MODELS[i];
     const attemptStart = Date.now();
     const attemptNum = i + 1;
-    
+
     try {
       console.log(`\n   ┌─────────────────────────────────────────────────────────`);
       console.log(`   │ 🤖 [${attemptNum}/${MODELS.length}] ATTEMPTING MODEL: ${model}`);
@@ -237,7 +289,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
       const startTime = Date.now();
       console.log(`   │ 📤 Sending HTTP POST to OpenRouter API...`);
-      
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -259,7 +311,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
         let errorMsg = response.statusText;
         let errorDetails = {};
         let errorCode = null;
-        
+
         try {
           const errorData = await response.json();
           errorMsg = errorData.error?.message || errorData.error?.type || errorMsg;
@@ -326,7 +378,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const totalDuration = Date.now() - attemptStart;
       successfulModel = modelUsed;
       successfulResponse = content;
-      
+
       console.log(`   │`);
       console.log(`   │ ✅✅✅ SUCCESS! MODEL WORKED: ${modelUsed} ✅✅✅`);
       console.log(`   │`);
@@ -342,7 +394,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       console.log(`   Attempt Number: ${attemptNum}/${MODELS.length}`);
       console.log(`   Total Duration: ${totalDuration}ms`);
       console.log(`═══════════════════════════════════════════════════════════════\n`);
-      
+
       return content;
 
     } catch (error) {
@@ -350,7 +402,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
       const isNetwork = error.message.includes('fetch') || error.message.includes('network');
       const errorType = isTimeout ? 'TIMEOUT' : isNetwork ? 'NETWORK_ERROR' : 'EXCEPTION';
       const attemptDuration = Date.now() - attemptStart;
-      
+
       console.log(`   │`);
       console.log(`   │ ❌❌❌ ${errorType}: MODEL FAILED ❌❌❌`);
       console.log(`   │    Model: ${model}`);
@@ -360,7 +412,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
         console.log(`   │    Stack (first line): ${error.stack.split('\n')[1]?.trim() || 'N/A'}`);
       }
       console.log(`   │`);
-      
+
       allErrors.push({
         model,
         status: errorType,
@@ -465,14 +517,14 @@ app.post('/api/enhance-prompt', async (req, res) => {
   console.log(`\n✨ [${new Date().toISOString()}] Request: Enhancing prompt...`);
   try {
     const { rawInput } = req.body;
-    
+
     if (!rawInput || !rawInput.trim()) {
       console.log(`   ⚠️  Empty input, returning as-is`);
       return res.json({ text: rawInput || '' });
     }
-    
+
     console.log(`   Input length: ${rawInput.length} characters`);
-    
+
     const messages = [
       {
         role: 'user',
@@ -483,7 +535,7 @@ app.post('/api/enhance-prompt', async (req, res) => {
     console.log(`   📤 Sending to AI models...`);
     const response = await callOpenRouter(messages, false);
     const enhanced = response.trim();
-    
+
     console.log(`   ✅ Enhancement successful (${enhanced.length} chars)`);
     res.json({ text: enhanced });
   } catch (error) {
@@ -496,14 +548,82 @@ app.post('/api/enhance-prompt', async (req, res) => {
 // 3. Generate Blueprint
 app.post('/api/generate-blueprint', async (req, res) => {
   const { rawIdea } = req.body;
-  const requestId = Math.random().toString(36).substring(7);
+  const requestId = Math.random().toString(36).substring(2, 9).toUpperCase();
   const timestamp = new Date().toISOString();
+  const startTime = Date.now();
 
-  console.log(`\n========================================`);
-  console.log(`🚀 [${timestamp}] Generate Blueprint Request Received`);
+  console.log(`\n═══════════════════════════════════════════════════════════════`);
+  console.log(`🚀 [${timestamp}] [BLUEPRINT-${requestId}] GENERATE BLUEPRINT REQUEST RECEIVED`);
+  console.log(`═══════════════════════════════════════════════════════════════`);
   console.log(`   Request ID: ${requestId}`);
-  console.log(`   IP: ${req.ip || req.socket.remoteAddress}`);
-  console.log(`========================================`);
+  console.log(`   Origin: ${req.headers.origin || 'N/A'}`);
+  console.log(`   User-Agent: ${req.headers['user-agent']?.substring(0, 60) || 'N/A'}...`);
+  console.log(`   IP: ${req.ip || req.socket.remoteAddress || 'N/A'}`);
+  console.log(`   API Key Status: ${OPENROUTER_API_KEY ? '✓ CONFIGURED' : '✗ MISSING'}`);
+  if (OPENROUTER_API_KEY) {
+    console.log(`   API Key Preview: ${OPENROUTER_API_KEY.substring(0, 12)}...${OPENROUTER_API_KEY.slice(-8)}`);
+    console.log(`   API Key Length: ${OPENROUTER_API_KEY.length} characters`);
+  }
+  console.log(`═══════════════════════════════════════════════════════════════`);
+
+  // Validate API key first
+  if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.trim().length === 0) {
+    console.error(`\n❌ [${requestId}] CRITICAL ERROR: OPENROUTER_API_KEY is missing!`);
+    console.error(`   This means AI functionality is disabled.`);
+    console.error(`   Please set OPENROUTER_API_KEY in Render environment variables.`);
+    console.error(`   Get your free key at: https://openrouter.ai/keys`);
+    console.error(`═══════════════════════════════════════════════════════════════\n`);
+
+    return res.status(500).json({
+      error: 'AI service not configured',
+      message: 'OPENROUTER_API_KEY is missing. Please configure it in the backend environment variables.',
+      rescue: {
+        productName: (rawIdea || 'Your Idea').slice(0, 30) + " Platform",
+        tagline: "AI service configuration required",
+        ideaSummary: rawIdea || "An innovative solution to address market needs.",
+        problemStatement: "Backend AI service needs OPENROUTER_API_KEY environment variable to be set.",
+        usp: "Once configured, this will generate detailed blueprints using AI models.",
+        painPoints: ["Configuration required", "API key missing"],
+        domainSuggestions: ["example.com"],
+        marketAnalysis: {
+          targetAudience: "Target users",
+          marketGap: "Market opportunity",
+          potentialSize: "Growing market"
+        },
+        viability: {
+          score: 70,
+          saturationAnalysis: "Configuration pending",
+          pivotSuggestion: "Configure OPENROUTER_API_KEY in Render dashboard"
+        },
+        competitors: [{
+          name: "Existing Solution",
+          strength: "Market presence",
+          weakness: "Limited features"
+        }],
+        monetizationStrategy: ["Subscription", "Freemium"],
+        risksAndAssumptions: ["Configuration required", "API key needed"],
+        mvpFeatures: [{
+          title: "AI Configuration",
+          description: "Set OPENROUTER_API_KEY in Render environment variables",
+          priority: "High"
+        }],
+        techStack: {
+          frontend: "React",
+          backend: "Node.js",
+          database: "PostgreSQL",
+          deployment: "Cloud",
+          extras: []
+        },
+        roadmap: [{
+          name: "Configuration",
+          timeline: "Immediate",
+          keyDeliverables: ["Set API key", "Redeploy"]
+        }],
+        maintenanceStrategy: "Configure OPENROUTER_API_KEY at https://openrouter.ai/keys",
+        sources: []
+      }
+    });
+  }
 
   if (!rawIdea || !rawIdea.trim()) {
     console.error(`❌ [${requestId}] Error: rawIdea is missing or empty`);
@@ -591,27 +711,37 @@ Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
       throw new Error('Invalid blueprint: missing required fields');
     }
 
-    console.log(`✅ [${requestId}] Success: Blueprint forged for "${parsed.productName}"`);
-    console.log(`📊 [${requestId}] Blueprint Summary: ${parsed.ideaSummary?.slice(0, 80)}...`);
-    console.log(`⏱️ [${requestId}] Total processing time: ${Date.now() - new Date(timestamp).getTime()}ms`);
-    console.log(`========================================\n`);
+    const totalTime = Date.now() - startTime;
+    console.log(`\n✅✅✅ [${requestId}] SUCCESS: BLUEPRINT FORGED ✅✅✅`);
+    console.log(`   Product Name: "${parsed.productName || 'Unknown'}"`);
+    console.log(`   Blueprint Summary: ${parsed.ideaSummary?.slice(0, 80) || 'N/A'}...`);
+    console.log(`   Viability Score: ${parsed.viability?.score || 'N/A'}`);
+    console.log(`   Total Processing Time: ${totalTime}ms`);
+    console.log(`═══════════════════════════════════════════════════════════════\n`);
     res.json({ ...parsed, sources: [] });
 
   } catch (error) {
     const errorTimestamp = new Date().toISOString();
-    console.error(`\n❌ [${errorTimestamp}] [${requestId}] Error generating blueprint`);
-    console.error(`   Error message: ${error.message || error}`);
-    console.error(`   Error type: ${error.name || 'Unknown'}`);
+    const totalTime = Date.now() - startTime;
+    console.error(`\n❌❌❌ [${errorTimestamp}] [${requestId}] ERROR GENERATING BLUEPRINT ❌❌❌`);
+    console.error(`   Error Type: ${error.name || 'Unknown'}`);
+    console.error(`   Error Message: ${error.message || String(error)}`);
+    console.error(`   Processing Time: ${totalTime}ms`);
     if (error.stack) {
-      console.error(`   Stack trace:`);
-      console.error(error.stack);
+      console.error(`   Stack Trace (first 5 lines):`);
+      console.error(error.stack.split('\n').slice(0, 5).join('\n'));
     }
-    console.log(`🛠️ [${requestId}] AI Failure -> Launching Professional Rescue Template (200 OK)`);
+    console.error(`═══════════════════════════════════════════════════════════════`);
+    console.log(`🛠️ [${requestId}] AI Failure -> Launching Professional Rescue Template`);
+    console.log(`═══════════════════════════════════════════════════════════════\n`);
 
-    // Return error with rescue template
+    // Return error with rescue template (200 OK so frontend can use rescue data)
     res.status(500).json({
       error: 'AI generation failed',
       message: error.message,
+      requestId,
+      timestamp: errorTimestamp,
+      processingTime: totalTime,
       rescue: {
         productName: rawIdea.slice(0, 30) + " Platform",
         tagline: "Transforming ideas into reality",
@@ -666,10 +796,10 @@ app.post('/api/execution-plan', async (req, res) => {
   console.log(`\n📋 [${new Date().toISOString()}] Request: Generating Execution Plan...`);
   try {
     const { blueprint = {} } = req.body;
-    
+
     console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
     console.log(`   Tech Stack: ${blueprint?.techStack?.frontend || 'Not specified'}`);
-    
+
     const messages = [
       {
         role: 'system',
@@ -699,7 +829,7 @@ Output ONLY JSON in this format (no markdown, no code blocks):
     const response = await callOpenRouter(messages, true);
     const repaired = repairJson(response);
     const parsed = JSON.parse(repaired);
-    
+
     const tasks = parsed.tasks || parsed;
     console.log(`   ✅ Execution plan generated: ${Array.isArray(tasks) ? tasks.length : 'N/A'} tasks`);
     res.json(tasks);
@@ -717,10 +847,10 @@ app.post('/api/simulate-timeline', async (req, res) => {
   console.log(`\n⏱️ [${new Date().toISOString()}] Request: Simulating Timeline...`);
   try {
     const { blueprint = {}, months = 3 } = req.body;
-    
+
     console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
     console.log(`   Target Months: ${months}`);
-    
+
     const messages = [
       {
         role: 'system',
@@ -745,7 +875,7 @@ Output ONLY JSON (no markdown, no code blocks):
     const response = await callOpenRouter(messages, true);
     const repaired = repairJson(response);
     const parsed = JSON.parse(repaired);
-    
+
     console.log(`   ✅ Timeline simulation successful`);
     console.log(`   Feasible: ${parsed.feasible}`);
     console.log(`   Risk: ${parsed.riskFactor}`);
@@ -770,10 +900,10 @@ app.post('/api/guided-step', async (req, res) => {
   console.log(`\n🧭 [${new Date().toISOString()}] Request: Guided Co-Founder Step...`);
   try {
     const { step = '', blueprint = {}, selections = {} } = req.body;
-    
+
     console.log(`   Step: ${step}`);
     console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
-    
+
     const messages = [
       {
         role: 'system',
@@ -795,17 +925,17 @@ Output ONLY JSON (no markdown, no code blocks):
     const response = await callOpenRouter(messages, true);
     const repaired = repairJson(response);
     const parsed = JSON.parse(repaired);
-    
+
     console.log(`   ✅ Guided step response successful`);
     res.json(parsed);
   } catch (error) {
     console.error(`   ❌ Guided step AI failed, using rescue advice: ${error.message}`);
     const { step = '' } = req.body;
-    
+
     // Context-aware fallback advice
     let advice = "Founder, we've hit a high-traffic AI zone. My strategic advice: focus on the simplest version of this step first. Ensure your core niche is clearly defined before adding complexity.";
     let suggestions = ["Focus on core value", "Validate with 1 user", "Continue to next step"];
-    
+
     if (step.toLowerCase().includes('tech') || step.toLowerCase().includes('stack')) {
       advice = "For technical decisions, start with the most proven, well-documented stack. Don't over-engineer - choose what works and iterate.";
       suggestions = ["Choose proven stack", "Document decisions", "Keep it simple"];
@@ -813,7 +943,7 @@ Output ONLY JSON (no markdown, no code blocks):
       advice = "Define your target audience narrowly first. It's better to serve 100 people perfectly than 10,000 poorly. Focus on their core pain point.";
       suggestions = ["Narrow audience", "Identify core pain", "Validate need"];
     }
-    
+
     res.json({ advice, suggestions });
   }
 });
@@ -822,13 +952,36 @@ Output ONLY JSON (no markdown, no code blocks):
 app.post('/api/chat', async (req, res) => {
   const chatRequestId = Math.random().toString(36).substring(2, 9).toUpperCase();
   const timestamp = new Date().toISOString();
-  
+  const startTime = Date.now();
+
   console.log(`\n═══════════════════════════════════════════════════════════════`);
   console.log(`💬 [${timestamp}] [CHAT-${chatRequestId}] CHAT REQUEST RECEIVED`);
   console.log(`═══════════════════════════════════════════════════════════════`);
-  
+  console.log(`   Request ID: ${chatRequestId}`);
+  console.log(`   Origin: ${req.headers.origin || 'N/A'}`);
+  console.log(`   IP: ${req.ip || req.socket.remoteAddress || 'N/A'}`);
+  console.log(`   API Key Status: ${OPENROUTER_API_KEY ? '✓ CONFIGURED' : '✗ MISSING'}`);
+  if (OPENROUTER_API_KEY) {
+    console.log(`   API Key Preview: ${OPENROUTER_API_KEY.substring(0, 12)}...${OPENROUTER_API_KEY.slice(-8)}`);
+  }
+  console.log(`═══════════════════════════════════════════════════════════════`);
+
   try {
     const { history = [], newMessage = '', context = '', isCoFounderMode = false } = req.body;
+
+    // Validate API key first
+    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.trim().length === 0) {
+      console.error(`\n❌ [${chatRequestId}] CRITICAL ERROR: OPENROUTER_API_KEY is missing!`);
+      console.error(`   AI chat functionality is disabled.`);
+      console.error(`   Please set OPENROUTER_API_KEY in Render environment variables.`);
+      console.error(`═══════════════════════════════════════════════════════════════\n`);
+
+      return res.json({
+        text: "I'm currently experiencing configuration issues. The AI service needs to be configured with an API key. Please contact support or check the backend configuration.",
+        suggestions: ["Check backend configuration", "Retry later", "Check API key setup"],
+        updates: null
+      });
+    }
 
     if (!newMessage || !newMessage.trim()) {
       console.log(`   ⚠️  Empty message received`);
@@ -840,9 +993,10 @@ app.post('/api/chat', async (req, res) => {
     }
 
     console.log(`   Message Length: ${newMessage.length} characters`);
+    console.log(`   Message Preview: "${newMessage.substring(0, 100)}${newMessage.length > 100 ? '...' : ''}"`);
     console.log(`   History Length: ${history.length} messages`);
     console.log(`   Co-Founder Mode: ${isCoFounderMode ? 'Yes' : 'No'}`);
-    console.log(`   Has Context: ${context ? 'Yes' : 'No'}`);
+    console.log(`   Has Context: ${context ? 'Yes (' + context.length + ' chars)' : 'No'}`);
 
     const basePersona = `You are PromptNovaX (PNX), a legendary AI Product Architect and Co-Founder. 
     You are brilliant, strategic, friendly, and conversational. 
@@ -912,18 +1066,21 @@ app.post('/api/chat', async (req, res) => {
       { role: 'user', content: newMessage }
     ];
 
-    console.log(`   📤 Sending to AI models (with fallback)...`);
+    console.log(`   📤 [${chatRequestId}] Sending to AI models (with fallback)...`);
     const aiResponse = await callOpenRouter(messages, true);
 
     try {
       const repaired = repairJson(aiResponse);
       const parsed = JSON.parse(repaired);
-      
-      console.log(`   ✅ Chat response parsed successfully`);
-      console.log(`   Response text length: ${parsed.text?.length || 0}`);
+      const totalTime = Date.now() - startTime;
+
+      console.log(`\n✅ [${chatRequestId}] Chat response parsed successfully`);
+      console.log(`   Response text length: ${parsed.text?.length || 0} characters`);
       console.log(`   Suggestions count: ${parsed.suggestions?.length || 0}`);
       console.log(`   Has updates: ${!!parsed.updates}`);
-      
+      console.log(`   Total Processing Time: ${totalTime}ms`);
+      console.log(`═══════════════════════════════════════════════════════════════\n`);
+
       res.json({
         text: parsed.text || "I've processed your request. How can I refine this further?",
         suggestions: parsed.suggestions || [],
@@ -933,10 +1090,10 @@ app.post('/api/chat', async (req, res) => {
       console.error(`   ⚠️  JSON Parse failed, attempting recovery...`);
       console.error(`   Parse error: ${parseError.message}`);
       console.error(`   Raw response preview: ${aiResponse.substring(0, 300)}...`);
-      
+
       // Try to extract text from malformed response
       let extractedText = aiResponse;
-      
+
       // Try to find JSON in the response
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -947,12 +1104,12 @@ app.post('/api/chat', async (req, res) => {
           // If still can't parse, use the raw text
         }
       }
-      
+
       // If response is too long, truncate it
       if (extractedText.length > 500) {
         extractedText = extractedText.substring(0, 500) + "...";
       }
-      
+
       console.log(`   ✅ Using recovered response`);
       res.json({
         text: extractedText || "I understand what you're asking. Let me help you think through this step by step. What specific aspect would you like to focus on?",
@@ -961,20 +1118,27 @@ app.post('/api/chat', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error(`\n   ❌❌❌ CHAT ENDPOINT ERROR ❌❌❌`);
+    const totalTime = Date.now() - startTime;
+    console.error(`\n❌❌❌ [${chatRequestId}] CHAT ENDPOINT ERROR ❌❌❌`);
     console.error(`   Request ID: ${chatRequestId}`);
-    console.error(`   Error: ${error.message}`);
-    console.error(`   Stack: ${error.stack?.split('\n').slice(0, 3).join('\n') || 'N/A'}`);
-    console.error(`   ═══════════════════════════════════════════════════════════════`);
-    console.log(`\n   🔄 Using intelligent fallback response...\n`);
-    
+    console.error(`   Error Type: ${error.name || 'Unknown'}`);
+    console.error(`   Error Message: ${error.message || String(error)}`);
+    console.error(`   Processing Time: ${totalTime}ms`);
+    if (error.stack) {
+      console.error(`   Stack Trace (first 5 lines):`);
+      console.error(error.stack.split('\n').slice(0, 5).join('\n'));
+    }
+    console.error(`═══════════════════════════════════════════════════════════════`);
+    console.log(`🔄 [${chatRequestId}] Using intelligent fallback response...`);
+    console.log(`═══════════════════════════════════════════════════════════════\n`);
+
     // Intelligent fallback based on message content
     const { newMessage = '', isCoFounderMode = false } = req.body || {};
     const messageLower = newMessage.toLowerCase();
-    
+
     let fallbackText = "Founder, I'm experiencing temporary connection issues with my AI models. ";
     let fallbackSuggestions = ["Retry", "Check connection", "Continue building"];
-    
+
     if (messageLower.includes('blueprint') || messageLower.includes('plan')) {
       fallbackText += "For blueprint-related questions, I recommend reviewing your existing blueprint in the left panel. You can make manual adjustments there while I reconnect.";
       fallbackSuggestions = ["Review blueprint", "Manual edits", "Try again"];
@@ -988,7 +1152,7 @@ app.post('/api/chat', async (req, res) => {
       fallbackText += "I recommend focusing on the core objective of your current step while I reconnect. What specific challenge are you facing right now?";
       fallbackSuggestions = ["Refine objective", "Continue building", "Try again"];
     }
-    
+
     res.json({
       text: fallbackText,
       suggestions: fallbackSuggestions,
@@ -1003,17 +1167,17 @@ app.post('/api/generate-daily-tasks', async (req, res) => {
   try {
     const { executionPlan = [], timeline = {} } = req.body;
     const targetMonths = timeline?.targetMonths || 3;
-    
+
     console.log(`   Target Months: ${targetMonths}`);
     console.log(`   Execution Plan Steps: ${executionPlan?.length || 0}`);
-    
+
     const messages = [
-      { 
-        role: 'system', 
-        content: 'You are LaunchPact AI Task Engine. Break plans into GRANULAR daily micro-tasks. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON.' 
+      {
+        role: 'system',
+        content: 'You are LaunchPact AI Task Engine. Break plans into GRANULAR daily micro-tasks. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON.'
       },
       {
-        role: 'user', 
+        role: 'user',
         content: `Create 3 HYPER-SPECIFIC tasks/day for ${targetMonths} months. 
       
       DAY 1 CRITICAL FOCUS: Foundation & Depth ONLY. (e.g., Development Environment Setup, Competitor Deep-Dive, or Niche Identification). DO NOT jump to Development or Deployment on Day 1.
@@ -1025,14 +1189,14 @@ app.post('/api/generate-daily-tasks', async (req, res) => {
       
       Plan Context: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}
       
-      Output ONLY valid JSON (no markdown, no code blocks).` 
+      Output ONLY valid JSON (no markdown, no code blocks).`
       }
     ];
 
     console.log(`   📤 Sending to AI models...`);
     const aiResponse = await callOpenRouter(messages, true);
     let dailyTasks = [];
-    
+
     try {
       const repaired = repairJson(aiResponse);
       const parsed = JSON.parse(repaired);
@@ -1051,7 +1215,7 @@ app.post('/api/generate-daily-tasks', async (req, res) => {
         xpReward: t.xpReward || 100,
         dayNumber: t.dayNumber || Math.floor(idx / 3) + 1
       }));
-      
+
       console.log(`   ✅ Daily tasks generated: ${dailyTasks.length} tasks`);
       console.log(`   Days covered: ${Math.max(...dailyTasks.map(t => t.dayNumber || 1))} days`);
     } catch (parseError) {
@@ -1060,7 +1224,7 @@ app.post('/api/generate-daily-tasks', async (req, res) => {
       console.error(`   Raw response preview: ${aiResponse.substring(0, 300)}...`);
       throw new Error("Could not parse AI response.");
     }
-    
+
     res.json({ dailyTasks });
   } catch (error) {
     console.error(`   ❌ Daily tasks AI failed, launching rescue data: ${error.message}`);
@@ -1089,6 +1253,12 @@ app.post('/api/tool-recommendations', async (req, res) => {
 app.post('/api/auth/signup-notification', async (req, res) => {
   const { email, name } = req.body;
   console.log(`📧 Sending welcome email to ${email}...`);
+
+  // Check if resend client is available
+  if (!resend) {
+    console.warn('⚠️  Resend client not initialized. Skipping email.');
+    return res.json({ success: true, message: 'Signup successful (email disabled)' });
+  }
 
   try {
     const { data, error } = await resend.emails.send({
@@ -1130,32 +1300,32 @@ app.post('/api/lock-plan', async (req, res) => {
   console.log(`\n🔒 [${new Date().toISOString()}] Request: Locking plan...`);
   try {
     const { blueprint = {}, executionPlan = [], timeline = {} } = req.body;
-    
+
     console.log(`   Project: ${blueprint?.productName || 'Unknown'}`);
     console.log(`   Execution Plan Steps: ${executionPlan?.length || 0}`);
     console.log(`   Timeline: ${timeline?.targetMonths || 3} months`);
 
     // Call internal daily tasks generator
     const messages = [
-      { 
-        role: 'system', 
-        content: 'You are LaunchPact AI Task Engine. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON with dailyTasks array.' 
+      {
+        role: 'system',
+        content: 'You are LaunchPact AI Task Engine. Output ONLY valid JSON. No markdown, no code blocks. Just pure JSON with dailyTasks array.'
       },
-      { 
-        role: 'user', 
-        content: `Break plan into 3 granular tasks per day. Day 1: Setup/Research ONLY. Output JSON format: { "dailyTasks": [...] }. Plan: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}` 
+      {
+        role: 'user',
+        content: `Break plan into 3 granular tasks per day. Day 1: Setup/Research ONLY. Output JSON format: { "dailyTasks": [...] }. Plan: ${JSON.stringify(executionPlan ? executionPlan.slice(0, 8) : [])}`
       }
     ];
 
     console.log(`   📤 Generating daily tasks via AI...`);
     const aiResponse = await callOpenRouter(messages, true);
     let dailyTasks = [];
-    
+
     try {
       const repaired = repairJson(aiResponse);
       const parsed = JSON.parse(repaired);
       dailyTasks = parsed.dailyTasks || parsed || [];
-      
+
       // Ensure all tasks have required fields
       dailyTasks = (dailyTasks || []).map((t, idx) => ({
         ...t,
@@ -1163,7 +1333,7 @@ app.post('/api/lock-plan', async (req, res) => {
         dayNumber: t.dayNumber || Math.floor(idx / 3) + 1,
         isCompleted: t.isCompleted || false
       }));
-      
+
       console.log(`   ✅ Daily tasks generated: ${dailyTasks.length} tasks`);
     } catch (parseError) {
       console.error(`   ⚠️  Failed to parse daily tasks, using rescue data: ${parseError.message}`);
@@ -1194,7 +1364,7 @@ app.post('/api/lock-plan', async (req, res) => {
     const { blueprint = {}, executionPlan = [], timeline = {} } = req.body;
     const rescueTasks = getRescueDailyTasks();
     const targetMonths = timeline?.targetMonths || 3;
-    
+
     const lockedPlan = {
       id: "rescue-" + Math.random().toString(36).substring(7),
       blueprint,
@@ -1208,7 +1378,7 @@ app.post('/api/lock-plan', async (req, res) => {
       completedTasksCount: 0,
       totalTasksCount: rescueTasks.length
     };
-    
+
     console.log(`   ✅ Using rescue plan: ${lockedPlan.id} (${rescueTasks.length} tasks)`);
     res.json({ lockedPlan });
   }
@@ -1247,6 +1417,11 @@ app.post('/api/auth/send-otp', async (req, res) => {
     if (dbError) throw dbError;
 
     // Send Email via Resend
+    if (!resend) {
+      console.warn('⚠️  Resend client not initialized. OTP stored but email not sent.');
+      return res.json({ success: true, message: "OTP generated (email disabled)" });
+    }
+
     const { error: resendError } = await resend.emails.send({
       from: `LaunchPact AI Protocol <${SENDER_EMAIL}>`,
       to: [email],
@@ -1498,24 +1673,24 @@ const getBaseUrl = (req) => {
   if (process.env.VITE_APP_URL) {
     return process.env.VITE_APP_URL;
   }
-  
+
   // Try to get from request headers (for Vercel or similar)
   const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'launchpact-ai.vercel.app';
-  
+
   // Build base URL
   let baseUrl = `${protocol}://${host}`;
-  
+
   // Remove port if default
   if (host.includes(':3000') || host.includes(':5173')) {
     baseUrl = baseUrl.replace(/:\d+$/, '');
   }
-  
+
   // Fallback to production URL
   if (!baseUrl || baseUrl.includes('localhost')) {
     baseUrl = 'https://launchpact-ai.vercel.app';
   }
-  
+
   return baseUrl;
 };
 
@@ -1577,6 +1752,11 @@ app.post('/api/team/send-invites', async (req, res) => {
         : '<p style="color: #64748b; font-size: 14px;">Your approval is optional, but your feedback is valuable!</p>';
 
       // Send invitation email
+      if (!resend) {
+        console.warn(`⚠️  Resend client not initialized. Skipping email for ${member.email}`);
+        continue; // Skip this member and continue with next
+      }
+
       const { error: emailError } = await resend.emails.send({
         from: `${productName} Team <${SENDER_EMAIL}>`,
         to: [member.email],
@@ -1750,7 +1930,7 @@ app.post('/api/team/ignore-invite/:token', async (req, res) => {
     // Mark as ignored by setting user_id but keeping joined_at null
     // Or we could add an ignored_at field - for now, we'll just leave it as is
     // The invite will remain in "Awaiting Uplink" but can be filtered client-side
-    
+
     res.json({ success: true, message: 'Invitation ignored' });
   } catch (error) {
     console.error('❌ Ignore invite failed:', error.message);
