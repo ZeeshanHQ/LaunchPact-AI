@@ -264,7 +264,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
     const keyLen = OPENROUTER_API_KEY.length;
     const signature = `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}`;
     const startsCorrect = OPENROUTER_API_KEY.startsWith('sk-or-v1-');
-    console.log(`   🔍 KEY DIAGNOSTICS (DEBUG_VER_3):`);
+    console.log(`   🔍 KEY DIAGNOSTICS (DEBUG_VER_4_FORCE_DEPLOY):`);
     console.log(`      Signature: ${signature}`);
     console.log(`      Length: ${keyLen} chars`);
     console.log(`      Format Valid (sk-or-v1-): ${startsCorrect ? '✅ YES' : '❌ NO'}`);
