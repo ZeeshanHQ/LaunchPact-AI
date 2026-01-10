@@ -264,10 +264,15 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
     const keyLen = OPENROUTER_API_KEY.length;
     const signature = `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}`;
     const startsCorrect = OPENROUTER_API_KEY.startsWith('sk-or-v1-');
-    console.log(`   🔍 KEY DIAGNOSTICS: `);
+    console.log(`   🔍 KEY DIAGNOSTICS (DEBUG_VER_3):`);
     console.log(`      Signature: ${signature}`);
     console.log(`      Length: ${keyLen} chars`);
-    console.log(`      Format Valid(sk - or - v1 -): ${startsCorrect ? '✅ YES' : '❌ NO'}`);
+    console.log(`      Format Valid (sk-or-v1-): ${startsCorrect ? '✅ YES' : '❌ NO'}`);
+
+    // HEX DIAGNOSTICS: Check for hidden/invisible characters at the start
+    const first5Hex = Array.from(OPENROUTER_API_KEY.substring(0, 5)).map(c => c.charCodeAt(0).toString(16)).join(' ');
+    console.log(`      First 5 chars (Hex): ${first5Hex}`);
+
     if (keyLen < 30) console.log(`      ⚠️ WARNING: Key length seems too short!`);
   }
 
@@ -333,7 +338,7 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
         headers: {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.VITE_APP_URL || 'http://localhost:3000',
+          'Referer': process.env.VITE_APP_URL || 'https://launchpact-ai.vercel.app',
           'X-Title': 'LaunchPact AI'
         },
         body: JSON.stringify(requestBody),
