@@ -505,6 +505,33 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 
 // --- Routes ---
 
+// 0. Debug Auth Endpoint (TEMPORARY - FOR DIAGNOSTICS)
+app.get('/api/debug-auth', (req, res) => {
+  const keyLen = OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0;
+  const signature = OPENROUTER_API_KEY ? `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}` : 'MISSING';
+  const first5Hex = OPENROUTER_API_KEY ? Array.from(OPENROUTER_API_KEY.substring(0, 5)).map(c => c.charCodeAt(0).toString(16)).join(' ') : 'N/A';
+
+  res.json({
+    appVersion: 'DEBUG_VER_5_LIVE_CHECK',
+    timestamp: new Date().toISOString(),
+    authStatus: {
+      isLoaded: !!OPENROUTER_API_KEY,
+      length: keyLen,
+      signature: signature,
+      formatValid: OPENROUTER_API_KEY ? OPENROUTER_API_KEY.startsWith('sk-or-v1-') : false,
+      first5Hex: first5Hex
+    },
+    headerPreview: {
+      authorization: OPENROUTER_API_KEY ? `Bearer ${OPENROUTER_API_KEY.substring(0, 5)}...` : 'Missing',
+      referer: process.env.VITE_APP_URL || 'https://launchpact-ai.vercel.app'
+    },
+    environment: {
+      nodeEnv: process.env.NODE_ENV,
+      renderServiceId: process.env.RENDER_SERVICE_ID || 'Not on Render?'
+    }
+  });
+});
+
 // 1. Health Check
 app.get('/api/status', (req, res) => {
   res.json({
