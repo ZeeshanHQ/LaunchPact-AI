@@ -130,10 +130,15 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
   );
 };
 
-const NavPill = ({ label, onClick }: { label: string, onClick: () => void }) => (
+const NavPill = ({ label, onClick, active }: { label: string, onClick: () => void, active?: boolean }) => (
   <button
     onClick={onClick}
-    className="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+    className={`
+      px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all
+      ${active
+        ? 'bg-white/10 text-white shadow-lg shadow-white/5'
+        : 'text-slate-400 hover:text-white hover:bg-white/5'}
+    `}
   >
     {label}
   </button>
