@@ -150,8 +150,10 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, userStats, activePlan, 
   return (
     <div className="p-8 pb-32 max-w-7xl mx-auto space-y-10">
       {/* Dashboard Title / Context */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">Command Center</h1>
+      <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-8">
+        <div className="flex items-center gap-3">
+          <img src="/logo_pro.png" alt="LaunchPact AI" className="h-10 w-auto" />
+        </div>
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
             <p className="text-xs font-black text-white uppercase italic tracking-tight">{userProfile?.full_name || 'Anonymous Founder'}</p>

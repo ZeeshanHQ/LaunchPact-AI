@@ -509,7 +509,8 @@ const callOpenRouter = async (messages, schema = null, maxRetries = MODELS.lengt
 app.get('/api/debug-auth', async (req, res) => {
   const keyLen = OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0;
   const signature = OPENROUTER_API_KEY ? `${OPENROUTER_API_KEY.substring(0, 8)}...${OPENROUTER_API_KEY.slice(-6)}` : 'MISSING';
-  const first5Hex = OPENROUTER_API_KEY ? Array.from(OPENROUTER_API_KEY.substring(0, 5)).map(c => c.charCodeAt(0).toString(16)).join(' ') : 'N/A';
+  const first10Hex = OPENROUTER_API_KEY ? Array.from(OPENROUTER_API_KEY.substring(0, 10)).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' ') : 'N/A';
+  const first10Chars = OPENROUTER_API_KEY ? OPENROUTER_API_KEY.substring(0, 10) : 'N/A';
 
   // LIVE VERIFICATION: Try to actually use the key
   let verificationResult = 'NOT_ATTEMPTED';

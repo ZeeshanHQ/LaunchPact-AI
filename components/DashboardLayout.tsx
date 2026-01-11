@@ -124,14 +124,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ activePlan }) => {
                 {/* Logo Section */}
                 <div className="p-8 pb-10 flex items-center gap-4 group cursor-pointer overflow-hidden whitespace-nowrap" onClick={() => navigate('/')}>
                     <div className="relative flex-shrink-0">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-                        <div className="relative w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center shadow-2xl">
-                            <Cpu size={22} className="text-indigo-400 group-hover:scale-110 transition-transform duration-500" />
-                        </div>
+                        <img src="/logo_pro.png" alt="LP" className="h-9 w-auto group-hover:scale-110 transition-transform duration-500" />
                     </div>
                     {!isSidebarCollapsed && (
                         <div className="flex flex-col transition-opacity duration-300">
-                            <span className="font-black text-white tracking-tight uppercase italic text-lg leading-none">LaunchPact</span>
+                            <span className="font-black text-white tracking-tight uppercase italic text-lg leading-none">LaunchPacT</span>
                             <span className="text-[10px] font-black tracking-[0.3em] text-indigo-500 uppercase leading-none mt-1">Foundry AI</span>
                         </div>
                     )}

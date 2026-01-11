@@ -180,7 +180,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onGoLogin, onBack }) 
                         <div className="text-center lg:text-left space-y-2">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3 cursor-pointer" onClick={onBack}>
-                                    <img src="/pnx_logo.png" alt="LaunchPact AI" className="h-8 w-auto hover:scale-110 transition-transform" />
+                                    <img src="/logo_pro.png" alt="LaunchPact AI" className="h-10 w-auto hover:scale-110 transition-transform" />
                                 </div>
                                 <button
                                     onClick={onBack}
@@ -356,7 +356,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onGoLogin, onBack }) 
 
                     <div className="relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-4 cursor-pointer group" onClick={onBack}>
-                            <img src="/pnx_logo.png" alt="LaunchPact AI" className="h-10 w-auto group-hover:scale-110 transition-transform" />
+                            <img src="/logo_pro.png" alt="LaunchPact AI" className="h-12 w-auto group-hover:scale-110 transition-transform" />
                         </div>
                         <button
                             onClick={onBack}

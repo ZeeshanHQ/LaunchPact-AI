@@ -31,35 +31,35 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogin, onGoHome, onGoDash
       >
         <nav className="flex items-center justify-between px-2 w-full">
 
-          {/* Left: Logo (Hidden when scrolled if needed, or compact) */}
-          <div className={`flex items-center gap-4 transition-all duration-500 ${scrolled ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}`}>
-            <div onClick={onGoHome} className="cursor-pointer group flex items-center gap-2 pl-2">
-              <img src="/logo_v2.png" alt="LaunchPact" className="h-8 w-auto object-contain" />
+          {/* Left: Logo */}
+          <div className={`flex items-center gap-4 transition-all duration-700 ${scrolled ? 'w-0 opacity-0 -translate-x-4 overflow-hidden' : 'w-auto opacity-100 translate-x-0'}`}>
+            <div onClick={onGoHome} className="cursor-pointer group flex items-center gap-3 pl-2">
+              <img src="/logo_pro.png" alt="LaunchPact AI" className="h-9 w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
             </div>
           </div>
 
           {/* Center: Main Navigation (Always visible) */}
           <div className="flex-1 flex justify-center">
             <div className={`
-                flex items-center p-1.5 rounded-full transition-all duration-500
-                ${scrolled ? 'bg-slate-800/50 border border-white/5' : 'bg-transparent'}
+                flex items-center p-1 rounded-full transition-all duration-700
+                ${scrolled ? 'bg-white/5 border border-white/10 backdrop-blur-md px-2' : 'bg-transparent'}
               `}>
-              {/* Home / Logo Trigger for Island */}
-              {scrolled && (
-                <button onClick={onGoHome} className="p-2 mr-2 rounded-full hover:bg-white/10 text-indigo-400 transition-colors">
-                  <img src="/logo_v2.png" alt="LP" className="h-5 w-auto" />
+              {/* Logo Trigger for Island when scrolled */}
+              <div className={`transition-all duration-700 overflow-hidden flex items-center ${scrolled ? 'w-10 opacity-100 mr-2' : 'w-0 opacity-0 mr-0'}`}>
+                <button onClick={onGoHome} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                  <img src="/logo_pro.png" alt="LP" className="h-6 w-auto" />
                 </button>
-              )}
+              </div>
 
-              <div className="flex items-center gap-1">
-                <NavPill label="Platform" onClick={() => onNavigate('/platform')} />
-                <NavPill label="Features" onClick={() => {
+              <div className="flex items-center gap-0.5">
+                <NavPill label="Protocol" onClick={() => onNavigate('/platform')} active={false} />
+                <NavPill label="Vision" onClick={() => {
                   const section = document.getElementById('features');
                   if (section) section.scrollIntoView({ behavior: 'smooth' });
                   else onGoHome();
-                }} />
-                <NavPill label="Pricing" onClick={() => onNavigate('/pricing')} />
-                <NavPill label="Insights" onClick={() => onNavigate('/insights')} />
+                }} active={false} />
+                <NavPill label="Foundry" onClick={() => onNavigate('/pricing')} active={false} />
+                <NavPill label="Intel" onClick={() => onNavigate('/insights')} active={false} />
               </div>
             </div>
           </div>

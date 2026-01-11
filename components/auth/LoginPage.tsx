@@ -76,7 +76,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onGoSignup, onBack }) =>
 
                 <div className="relative z-10 flex items-center justify-between">
                     <div className="flex items-center gap-4 cursor-pointer group" onClick={onBack}>
-                        <img src="/pnx_logo.png" alt="LaunchPact AI" className="h-10 w-auto group-hover:scale-110 transition-transform" />
+                        <img src="/logo_pro.png" alt="LaunchPact AI" className="h-12 w-auto group-hover:scale-110 transition-transform" />
                     </div>
                     <button
                         onClick={onBack}
